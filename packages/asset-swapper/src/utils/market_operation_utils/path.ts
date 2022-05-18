@@ -57,16 +57,6 @@ export class Path {
         return path;
     }
 
-    public static clone(base: Path): Path {
-        const clonedPath = new Path(base.side, base.fills.slice(), base.targetInput, base.pathPenaltyOpts);
-        clonedPath.sourceFlags = base.sourceFlags;
-        clonedPath._size = { ...base._size };
-        clonedPath._adjustedSize = { ...base._adjustedSize };
-        clonedPath.collapsedFills = base.collapsedFills === undefined ? undefined : base.collapsedFills.slice();
-        clonedPath.orders = base.orders === undefined ? undefined : base.orders.slice();
-        return clonedPath;
-    }
-
     protected constructor(
         protected readonly side: MarketOperation,
         public fills: ReadonlyArray<Fill>,
@@ -74,44 +64,10 @@ export class Path {
         public readonly pathPenaltyOpts: PathPenaltyOpts,
     ) {}
 
-    public append(fill: Fill): this {
-        (this.fills as Fill[]).push(fill);
-        this.sourceFlags |= fill.flags;
-        this._addFillSize(fill);
-        return this;
-    }
-
     /**
-     * Add a fallback path to the current path
-     * Fallback must contain exclusive fills that are
-     * not present in this path
+     * Collapses this path, creating fillable orders with the information required
+     * for settlement
      */
-    public addFallback(fallback: Path): this {
-        // We pre-pend the sources which have a higher probability of failure
-        // This allows us to continue on to the remaining fills
-        // If the "flakey" sources like Native were at the end, we may have a failure
-        // as the last fill and then either revert, or go back to a source we previously
-        // filled against
-        const nativeFills = this.fills.filter(f => f.source === ERC20BridgeSource.Native);
-        const otherFills = this.fills.filter(f => f.source !== ERC20BridgeSource.Native);
-
-        // Map to the unique source id and the index to represent a unique fill
-        const fillToFillId = (fill: Fill) => `${fill.sourcePathId}${fill.index}`;
-        const otherFillIds = otherFills.map(f => fillToFillId(f));
-
-        this.fills = [
-            // Append all of the native fills first
-            ...nativeFills,
-            // Add the other fills that are not native in the optimal path
-            ...otherFills,
-            // Add the fills to the end that aren't already included
-            ...fallback.fills.filter(f => !otherFillIds.includes(fillToFillId(f))),
-        ];
-        // Recompute the source flags
-        this.sourceFlags = this.fills.reduce((flags, fill) => flags | fill.flags, BigInt(0));
-        return this;
-    }
-
     public collapse(opts: CreateOrderFromPathOpts): CollapsedPath {
         const [makerToken, takerToken] = getMakerTakerTokens(opts);
         const collapsedFills = this.collapsedFills === undefined ? this._collapseFills() : this.collapsedFills;
@@ -127,10 +83,6 @@ export class Path {
             i += 1;
         }
         return this as CollapsedPath;
-    }
-
-    public size(): PathSize {
-        return this._size;
     }
 
     public adjustedSize(): PathSize {
@@ -155,6 +107,10 @@ export class Path {
         return getCompleteRate(this.side, input, output, this.targetInput);
     }
 
+    /**
+     * Calculates the rate of this path, where the output has been
+     * adjusted for penalties (e.g cost)
+     */
     public adjustedRate(): BigNumber {
         const { input, output } = this.adjustedSize();
         return getRate(this.side, input, output);
@@ -171,16 +127,11 @@ export class Path {
         return best;
     }
 
-    public adjustedSlippage(maxRate: BigNumber): number {
-        if (maxRate.eq(0)) {
-            return 0;
-        }
-        const totalRate = this.adjustedRate();
-        const rateChange = maxRate.minus(totalRate);
-        return rateChange.div(maxRate).toNumber();
-    }
-
-    public isBetterThan(other: Path): boolean {
+    /**
+     * Compares two paths returning if this adjusted path
+     * is better than the other adjusted path
+     */
+    public isAdjustedBetterThan(other: Path): boolean {
         if (!this.targetInput.isEqualTo(other.targetInput)) {
             throw new Error(`Target input mismatch: ${this.targetInput} !== ${other.targetInput}`);
         }
@@ -192,50 +143,6 @@ export class Path {
         } else {
             return this.adjustedCompleteRate().isGreaterThan(other.adjustedCompleteRate());
         }
-        // if (otherInput.isLessThan(targetInput)) {
-        //     return input.isGreaterThan(otherInput);
-        // } else if (input.isGreaterThanOrEqualTo(targetInput)) {
-        //     return this.adjustedCompleteRate().isGreaterThan(other.adjustedCompleteRate());
-        // }
-        // return false;
-    }
-
-    public isComplete(): boolean {
-        const { input } = this._size;
-        return input.gte(this.targetInput);
-    }
-
-    public isValid(skipDuplicateCheck: boolean = false): boolean {
-        for (let i = 0; i < this.fills.length; ++i) {
-            // Fill must immediately follow its parent.
-            if (this.fills[i].parent) {
-                if (i === 0 || this.fills[i - 1] !== this.fills[i].parent) {
-                    return false;
-                }
-            }
-            if (!skipDuplicateCheck) {
-                // Fill must not be duplicated.
-                for (let j = 0; j < i; ++j) {
-                    if (this.fills[i] === this.fills[j]) {
-                        return false;
-                    }
-                }
-            }
-        }
-        return true;
-    }
-
-    public isValidNextFill(fill: Fill): boolean {
-        if (this.fills.length === 0) {
-            return !fill.parent;
-        }
-        if (this.fills[this.fills.length - 1] === fill.parent) {
-            return true;
-        }
-        if (fill.parent) {
-            return false;
-        }
-        return true;
     }
 
     private _collapseFills(): ReadonlyArray<CollapsedFill> {

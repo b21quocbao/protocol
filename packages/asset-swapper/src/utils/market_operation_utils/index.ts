@@ -45,7 +45,7 @@ import { createFills } from './fills';
 import { getBestTwoHopQuote } from './multihop_utils';
 import { createOrdersFromTwoHopSample } from './orders';
 import { Path, PathPenaltyOpts } from './path';
-import { findOptimalPathJSAsync, findOptimalRustPathFromSamples } from './path_optimizer';
+import { findOptimalPathFromSamples } from './path_optimizer';
 import { DexOrderSampler, getSampleAmounts } from './sampler';
 import { SourceFilters } from './source_filters';
 import {
@@ -516,53 +516,29 @@ export class MarketOperationUtils {
         const takerAmountPerEth = side === MarketOperation.Sell ? inputAmountPerEth : outputAmountPerEth;
         const makerAmountPerEth = side === MarketOperation.Sell ? outputAmountPerEth : inputAmountPerEth;
 
-        let fills: Fill[][];
         // Find the optimal path using Rust router if enabled, otherwise fallback to JS Router
         let optimalPath: Path | undefined;
-        if (SHOULD_USE_RUST_ROUTER) {
-            fills = [[]];
-            optimalPath = findOptimalRustPathFromSamples(
-                side,
-                dexQuotes,
-                [...nativeOrders, ...augmentedRfqtIndicativeQuotes],
-                inputAmount,
-                penaltyOpts,
-                opts.feeSchedule,
-                this._sampler.chainId,
-                opts.neonRouterNumSamples,
-                opts.samplerMetrics,
-            );
-        } else {
-            // Convert native orders and dex quotes into `Fill` objects.
-            fills = createFills({
-                side,
-                orders: [...nativeOrders, ...augmentedRfqtIndicativeQuotes],
-                dexQuotes,
-                targetInput: inputAmount,
-                outputAmountPerEth,
-                inputAmountPerEth,
-                excludedSources: opts.excludedSources,
-                feeSchedule: opts.feeSchedule,
-            });
+        optimalPath = findOptimalPathFromSamples(
+            side,
+            dexQuotes,
+            [...nativeOrders, ...augmentedRfqtIndicativeQuotes],
+            inputAmount,
+            penaltyOpts,
+            opts.feeSchedule,
+            this._sampler.chainId,
+            opts.neonRouterNumSamples,
+            opts.samplerMetrics,
+        );
+        console.log({ optimalPath });
 
-            optimalPath = await findOptimalPathJSAsync(
-                side,
-                fills,
-                inputAmount,
-                opts.runLimit,
-                opts.samplerMetrics,
-                penaltyOpts,
-            );
-        }
-
-        const optimalPathRate = optimalPath ? optimalPath.adjustedRate() : ZERO_AMOUNT;
+        const optimalPathAdjustedRate = optimalPath ? optimalPath.adjustedRate() : ZERO_AMOUNT;
 
         const { adjustedRate: bestTwoHopRate, quote: bestTwoHopQuote } = getBestTwoHopQuote(
             marketSideLiquidity,
             opts.feeSchedule,
             opts.exchangeProxyOverhead,
         );
-        if (bestTwoHopQuote && bestTwoHopRate.isGreaterThan(optimalPathRate)) {
+        if (bestTwoHopQuote && bestTwoHopRate.isGreaterThan(optimalPathAdjustedRate)) {
             const twoHopOrders = createOrdersFromTwoHopSample(bestTwoHopQuote, orderOpts);
             return {
                 optimizedOrders: twoHopOrders,
@@ -580,11 +556,6 @@ export class MarketOperationUtils {
             throw new Error(AggregationError.NoOptimalPath);
         }
 
-        // Generate a fallback path if required
-        // TODO(kimpers): Will experiment with disabling this and see how it affects revert rate
-        // to avoid yet another router roundtrip
-        // TODO: clean this up if we don't need it
-        // await this._addOptionalFallbackAsync(side, inputAmount, optimalPath, dexQuotes, fills, opts, penaltyOpts);
         const collapsedPath = optimalPath.collapse(orderOpts);
 
         return {
@@ -592,7 +563,7 @@ export class MarketOperationUtils {
             liquidityDelivered: collapsedPath.collapsedFills as CollapsedFill[],
             sourceFlags: collapsedPath.sourceFlags,
             marketSideLiquidity,
-            adjustedRate: optimalPathRate,
+            adjustedRate: optimalPathAdjustedRate,
             takerAmountPerEth,
             makerAmountPerEth,
         };

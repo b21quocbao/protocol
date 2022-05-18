@@ -151,6 +151,7 @@ export {
     ExchangeProxyOverhead,
     FeeSchedule,
     Fill,
+    FillAdjustor,
     FillData,
     GetMarketOrdersRfqOpts,
     KyberFillData,
@@ -169,6 +170,7 @@ export {
     TokenAdjacencyGraph,
     UniswapV2FillData,
 } from './utils/market_operation_utils/types';
+export { IdentityFillAdjustor } from './utils/market_operation_utils/identity_fill_adjustor';
 export { ProtocolFeeUtils } from './utils/protocol_fee_utils';
 export {
     BridgeQuoteReportEntry,

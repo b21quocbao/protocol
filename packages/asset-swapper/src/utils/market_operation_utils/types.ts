@@ -699,3 +699,7 @@ export interface KyberSamplerOpts {
     hintHandler: string;
     weth: string;
 }
+
+export interface FillAdjustor {
+    adjustFills: (fills: Fill[], takerToken: string, makerToken: string, amount: BigNumber) => Fill[];
+}
