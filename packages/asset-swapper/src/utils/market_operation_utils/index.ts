@@ -41,7 +41,6 @@ import {
     SOURCE_FLAGS,
     ZERO_AMOUNT,
 } from './constants';
-import { createFills } from './fills';
 import { getBestTwoHopQuote } from './multihop_utils';
 import { createOrdersFromTwoHopSample } from './orders';
 import { Path, PathPenaltyOpts } from './path';
@@ -53,7 +52,6 @@ import {
     CollapsedFill,
     DexSample,
     ERC20BridgeSource,
-    Fill,
     GenerateOptimizedOrdersOpts,
     GetMarketOrdersOpts,
     MarketSideLiquidity,
@@ -455,6 +453,7 @@ export class MarketOperationUtils {
                             allowFallback: _opts.allowFallback,
                             gasPrice: _opts.gasPrice,
                             neonRouterNumSamples: _opts.neonRouterNumSamples,
+                            fillAdjustor: _opts.fillAdjustor,
                         },
                     );
                     return optimizerResult;
@@ -527,6 +526,7 @@ export class MarketOperationUtils {
             opts.feeSchedule,
             this._sampler.chainId,
             opts.neonRouterNumSamples,
+            opts.fillAdjustor,
             opts.samplerMetrics,
         );
         console.log({ optimalPath });
@@ -589,6 +589,7 @@ export class MarketOperationUtils {
             gasPrice: _opts.gasPrice,
             neonRouterNumSamples: _opts.neonRouterNumSamples,
             samplerMetrics: _opts.samplerMetrics,
+            fillAdjustor: _opts.fillAdjustor,
         };
 
         if (nativeOrders.length === 0) {

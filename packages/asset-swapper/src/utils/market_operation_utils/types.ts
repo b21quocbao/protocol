@@ -575,6 +575,11 @@ export interface GetMarketOrdersOpts {
      * Sampler metrics for recording data on the sampler service and operations
      */
     samplerMetrics?: SamplerMetrics;
+
+    /**
+     * Adjusts fills individual fills based on caller supplied criteria
+     */
+    fillAdjustor: FillAdjustor;
 }
 
 export interface SamplerMetrics {
@@ -688,6 +693,7 @@ export interface GenerateOptimizedOrdersOpts {
     gasPrice: BigNumber;
     neonRouterNumSamples: number;
     samplerMetrics?: SamplerMetrics;
+    fillAdjustor: FillAdjustor;
 }
 
 export interface ComparisonPrice {
@@ -701,5 +707,5 @@ export interface KyberSamplerOpts {
 }
 
 export interface FillAdjustor {
-    adjustFills: (fills: Fill[], takerToken: string, makerToken: string, amount: BigNumber) => Fill[];
+    adjustFills: (fills: Fill[], amount: BigNumber) => Fill[];
 }

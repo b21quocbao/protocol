@@ -25,7 +25,6 @@ import {
     SOURCE_FLAGS,
     ZERO_AMOUNT,
 } from '../src/utils/market_operation_utils/constants';
-import { createFills } from '../src/utils/market_operation_utils/fills';
 import { PoolsCache } from '../src/utils/market_operation_utils/pools_cache';
 import { DexOrderSampler } from '../src/utils/market_operation_utils/sampler';
 import { BATCH_SOURCE_FILTERS } from '../src/utils/market_operation_utils/sampler_operations';
@@ -1692,32 +1691,6 @@ describe('MarketOperationUtils tests', () => {
         const feeSchedule = {
             [ERC20BridgeSource.Native]: _.constant(2e5),
         };
-
-        it('penalizes native fill based on target amount when target is smaller', () => {
-            const path = createFills({
-                side: MarketOperation.Sell,
-                orders,
-                dexQuotes: [],
-                targetInput: takerAmount.minus(1),
-                outputAmountPerEth,
-                feeSchedule,
-            });
-            expect((path[0][0].fillData as NativeFillData).order.maker).to.eq(smallOrder.order.maker);
-            expect(path[0][0].input).to.be.bignumber.eq(takerAmount.minus(1));
-        });
-
-        it('penalizes native fill based on available amount when target is larger', () => {
-            const path = createFills({
-                side: MarketOperation.Sell,
-                orders,
-                dexQuotes: [],
-                targetInput: POSITIVE_INF,
-                outputAmountPerEth,
-                feeSchedule,
-            });
-            expect((path[0][0].fillData as NativeFillData).order.maker).to.eq(largeOrder.order.maker);
-            expect((path[0][1].fillData as NativeFillData).order.maker).to.eq(smallOrder.order.maker);
-        });
     });
 });
 // tslint:disable-next-line: max-file-line-count

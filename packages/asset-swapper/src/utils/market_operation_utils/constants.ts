@@ -4,6 +4,7 @@ import { BigNumber } from '@0x/utils';
 import { formatBytes32String } from '@ethersproject/strings';
 
 import { TokenAdjacencyGraphBuilder } from '../token_adjacency_graph_builder';
+import { IdentityFillAdjustor } from './identity_fill_adjustor';
 
 import { SourceFilters } from './source_filters';
 import {
@@ -2657,4 +2658,5 @@ export const DEFAULT_GET_MARKET_ORDERS_OPTS: Omit<GetMarketOrdersOpts, 'gasPrice
     shouldIncludePriceComparisonsReport: false,
     tokenAdjacencyGraph: { default: [] },
     neonRouterNumSamples: 14,
+    fillAdjustor: new IdentityFillAdjustor(),
 };
