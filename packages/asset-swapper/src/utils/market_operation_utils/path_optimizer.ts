@@ -86,14 +86,11 @@ function findRoutesAndCreateOptimalPath(
         return undefined;
     }
 
-    const createFillFromDexSample = (sample: DexSample): Fill | undefined => {
+    // Create a `Fill` from a dex sample and adjust it with any passed in
+    // adjustor
+    const createFillFromDexSample = (sample: DexSample): Fill => {
         const fill = dexSampleToFill(side, sample, opts.outputAmountPerEth, opts.inputAmountPerEth, fees);
         const adjustedFills = fillAdjustor.adjustFills([fill], input);
-        // NOTE: If the sample has 0 output dexSamplesToFills will return [] because no fill can be created
-        if (adjustedFills.length === 0) {
-            return undefined;
-        }
-
         return adjustedFills[0];
     };
 
@@ -252,20 +249,22 @@ function findRoutesAndCreateOptimalPath(
             continue;
         }
 
-        // TODO(kimpers): Do we need to handle 0 entries, from eg Kyber?
+        // TODO: Do we need to handle 0 entries, from eg Kyber?
         const serializedPath = singleSourceSamplesWithOutput.reduce<SerializedPath>(
             (memo, sample, sampleIdx) => {
+                // Use the fill from createFillFromDexSample to apply
+                // any user supplied adjustments
                 const f = createFillFromDexSample(sample);
+                memo.ids.push(`${f.source}-${serializedPaths.length}-${sampleIdx}`);
+                memo.inputs.push(f.input.integerValue().toNumber());
+                memo.outputs.push(f.output.integerValue().toNumber());
                 // Calculate the penalty of this sample as the diff between the
                 // output and the adjusted output
-                const outputFee = f!.output
-                    .minus(f!.adjustedOutput)
+                const outputFee = f.output
+                    .minus(f.adjustedOutput)
                     .absoluteValue()
                     .integerValue()
                     .toNumber();
-                memo.ids.push(`${sample.source}-${serializedPaths.length}-${sampleIdx}`);
-                memo.inputs.push(sample.input.integerValue().toNumber());
-                memo.outputs.push(sample.output.integerValue().toNumber());
                 memo.outputFees.push(outputFee);
 
                 return memo;
