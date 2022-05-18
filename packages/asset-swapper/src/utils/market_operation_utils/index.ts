@@ -60,8 +60,6 @@ import {
     OrderDomain,
 } from './types';
 
-const SHOULD_USE_RUST_ROUTER = process.env.RUST_ROUTER === 'true';
-
 // tslint:disable:boolean-naming
 
 export class MarketOperationUtils {
@@ -529,7 +527,6 @@ export class MarketOperationUtils {
             opts.fillAdjustor,
             opts.samplerMetrics,
         );
-        console.log({ optimalPath });
 
         const optimalPathAdjustedRate = optimalPath ? optimalPath.adjustedRate() : ZERO_AMOUNT;
 

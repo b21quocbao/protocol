@@ -16,11 +16,10 @@ import * as _ from 'lodash';
 import * as TypeMoq from 'typemoq';
 
 import { MarketOperation, QuoteRequestor, RfqRequestOpts, SignedNativeOrder } from '../src';
-import { Integrator, NativeOrderWithFillableAmounts } from '../src/types';
+import { Integrator } from '../src/types';
 import { MarketOperationUtils } from '../src/utils/market_operation_utils/';
 import {
     BUY_SOURCE_FILTER_BY_CHAIN_ID,
-    POSITIVE_INF,
     SELL_SOURCE_FILTER_BY_CHAIN_ID,
     SOURCE_FLAGS,
     ZERO_AMOUNT,
@@ -38,7 +37,6 @@ import {
     GetMarketOrdersOpts,
     LiquidityProviderFillData,
     MarketSideLiquidity,
-    NativeFillData,
     OptimizedMarketBridgeOrder,
     OptimizerResultWithReport,
     TokenAdjacencyGraph,
@@ -1651,46 +1649,6 @@ describe('MarketOperationUtils tests', () => {
                 expect(orderSources).to.deep.eq(expectedSources);
             });
         });
-    });
-
-    describe('createFills', () => {
-        const takerAmount = new BigNumber(5000000);
-        const outputAmountPerEth = new BigNumber(0.5);
-        // tslint:disable-next-line:no-object-literal-type-assertion
-        const smallOrder: NativeOrderWithFillableAmounts = {
-            order: {
-                ...new LimitOrder({
-                    chainId: 1,
-                    maker: 'SMALL_ORDER',
-                    takerAmount,
-                    makerAmount: takerAmount.times(2),
-                }),
-            },
-            fillableMakerAmount: takerAmount.times(2),
-            fillableTakerAmount: takerAmount,
-            fillableTakerFeeAmount: new BigNumber(0),
-            type: FillQuoteTransformerOrderType.Limit,
-            signature: SIGNATURE,
-        };
-        const largeOrder: NativeOrderWithFillableAmounts = {
-            order: {
-                ...new LimitOrder({
-                    chainId: 1,
-                    maker: 'LARGE_ORDER',
-                    takerAmount: smallOrder.order.takerAmount.times(2),
-                    makerAmount: smallOrder.order.makerAmount.times(2),
-                }),
-            },
-            fillableTakerAmount: smallOrder.fillableTakerAmount.times(2),
-            fillableMakerAmount: smallOrder.fillableMakerAmount.times(2),
-            fillableTakerFeeAmount: new BigNumber(0),
-            type: FillQuoteTransformerOrderType.Limit,
-            signature: SIGNATURE,
-        };
-        const orders = [smallOrder, largeOrder];
-        const feeSchedule = {
-            [ERC20BridgeSource.Native]: _.constant(2e5),
-        };
     });
 });
 // tslint:disable-next-line: max-file-line-count

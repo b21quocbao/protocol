@@ -4,8 +4,8 @@ import { BigNumber } from '@0x/utils';
 import { formatBytes32String } from '@ethersproject/strings';
 
 import { TokenAdjacencyGraphBuilder } from '../token_adjacency_graph_builder';
-import { IdentityFillAdjustor } from './identity_fill_adjustor';
 
+import { IdentityFillAdjustor } from './identity_fill_adjustor';
 import { SourceFilters } from './source_filters';
 import {
     AaveV2FillData,

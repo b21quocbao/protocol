@@ -8,9 +8,8 @@ import { performance } from 'perf_hooks';
 import { DEFAULT_WARNING_LOGGER } from '../../constants';
 import { MarketOperation, NativeOrderWithFillableAmounts } from '../../types';
 
-import { VIP_ERC20_BRIDGE_SOURCES_BY_CHAIN_ID, ZERO_AMOUNT } from './constants';
+import { VIP_ERC20_BRIDGE_SOURCES_BY_CHAIN_ID } from './constants';
 import { dexSampleToFill, ethToOutputAmount, nativeOrdersToFills } from './fills';
-import { IdentityFillAdjustor } from './identity_fill_adjustor';
 import { Path, PathPenaltyOpts } from './path';
 import { DexSample, ERC20BridgeSource, FeeSchedule, Fill, FillAdjustor, FillData, SamplerMetrics } from './types';
 
@@ -98,15 +97,15 @@ function findRoutesAndCreateOptimalPath(
         /**
          * inputs are the amounts to fill at each source index
          * e.g fill 2076 at index 4
-            [ 0, 0, 0, 0, 2076, 464, 230,
-              230, 0, 0, 0 ]
-            the sum represents the total input amount
-
-            outputs are the amounts we expect out at each source index
-            [ 0, 0, 0, 0, 42216, 9359, 4677,
-              4674, 0, 0, 0 ]
-            the sum represents the total expected output amount
-        */
+         *  [ 0, 0, 0, 0, 2076, 464, 230,
+         *    230, 0, 0, 0 ]
+         *  the sum represents the total input amount
+         *
+         *  outputs are the amounts we expect out at each source index
+         *  [ 0, 0, 0, 0, 42216, 9359, 4677,
+         *    4674, 0, 0, 0 ]
+         *  the sum represents the total expected output amount
+         */
 
         const routesAndSamplesAndOutputs = _.zip(
             optimalRouteInputs,

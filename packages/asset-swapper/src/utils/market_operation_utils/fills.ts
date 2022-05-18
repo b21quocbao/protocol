@@ -3,7 +3,7 @@ import { BigNumber, hexUtils } from '@0x/utils';
 
 import { MarketOperation, NativeOrderWithFillableAmounts } from '../../types';
 
-import { POSITIVE_INF, SOURCE_FLAGS, ZERO_AMOUNT } from './constants';
+import { POSITIVE_INF, SOURCE_FLAGS } from './constants';
 import { DexSample, ERC20BridgeSource, FeeSchedule, Fill } from './types';
 
 // tslint:disable: prefer-for-of no-bitwise completed-docs
