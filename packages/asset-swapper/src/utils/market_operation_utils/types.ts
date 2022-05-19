@@ -394,10 +394,6 @@ export interface Fill<TFillData extends FillData = FillData> {
     output: BigNumber;
     // The output fill amount, ajdusted by fees.
     adjustedOutput: BigNumber;
-    // Fill that must precede this one. This enforces certain fills to be contiguous.
-    parent?: Fill;
-    // The index of the fill in the original path.
-    index: number;
 }
 
 /**

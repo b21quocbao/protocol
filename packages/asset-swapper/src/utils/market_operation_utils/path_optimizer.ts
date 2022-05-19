@@ -9,7 +9,7 @@ import { DEFAULT_WARNING_LOGGER } from '../../constants';
 import { MarketOperation, NativeOrderWithFillableAmounts } from '../../types';
 
 import { VIP_ERC20_BRIDGE_SOURCES_BY_CHAIN_ID } from './constants';
-import { dexSampleToFill, ethToOutputAmount, nativeOrdersToFills } from './fills';
+import { dexSampleToFill, ethToOutputAmount, nativeOrderToFill } from './fills';
 import { Path, PathPenaltyOpts } from './path';
 import { DexSample, ERC20BridgeSource, FeeSchedule, Fill, FillAdjustor, FillData, SamplerMetrics } from './types';
 
@@ -143,17 +143,16 @@ function findRoutesAndCreateOptimalPath(
             // If it is a native single order we only have one Input/output
             // we want to convert this to an array of samples
             if (!isDexSample(current)) {
-                const nativeFill = nativeOrdersToFills(
+                const nativeFill = nativeOrderToFill(
                     side,
-                    [current],
+                    current,
                     routeInputCorrected,
                     opts.outputAmountPerEth,
                     opts.inputAmountPerEth,
                     fees,
                     false,
-                )[0] as Fill | undefined;
-                // Note: If the order has an adjusted rate of less than or equal to 0 it will be skipped
-                // and nativeFill will be `undefined`
+                ) as Fill | undefined;
+                // Note: If the order has an adjusted rate of less than or equal to 0 it will be undefined
                 if (nativeFill) {
                     // NOTE: For Limit/RFQ orders we are done here. No need to scale output
                     adjustedFills.push({ ...nativeFill, sourcePathId: sourcePathId ?? hexUtils.random() });
@@ -210,8 +209,6 @@ function findRoutesAndCreateOptimalPath(
                 input: routeInputCorrected,
                 output: scaleOutput(fill.output),
                 adjustedOutput: scaleOutput(fill.adjustedOutput),
-                index: 0,
-                parent: undefined,
                 sourcePathId: sourcePathId ?? hexUtils.random(),
             });
         }
