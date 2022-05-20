@@ -5,8 +5,8 @@ import * as _ from 'lodash';
 
 import { MarketOperation } from '../src/types';
 import {
-    CollapsedFill,
     ERC20BridgeSource,
+    Fill,
     NativeLimitOrderFillData,
     OptimizedMarketOrder,
     OptimizedMarketOrderBase,
@@ -160,46 +160,22 @@ describe('quote_simulation tests', async () => {
                 maxTakerTokenFillAmount: fillableTakerAmount,
             },
             type,
-            fills: createOrderCollapsedFills(fillableInput, fillableOutput, fillsCount),
+            fill: createOrderFill(fillableInput, fillableOutput, fillsCount),
         };
         return order;
     }
     const nativeSourcePathId = hexUtils.random();
-    function createOrderCollapsedFills(input: BigNumber, output: BigNumber, count: number): CollapsedFill[] {
-        const inputs = subdivideAmount(input, count);
-        const outputs = subdivideAmount(output, count);
-        return _.times(count, i => {
-            const subFillInputs = subdivideAmount(inputs[i], count);
-            const subFillOutputs = subdivideAmount(outputs[i], count);
-            return {
-                type: FillQuoteTransformerOrderType.Bridge,
-                sourcePathId: nativeSourcePathId,
-                source: ERC20BridgeSource.Uniswap,
-                fillData: {},
-                input: inputs[i],
-                output: outputs[i],
-                subFills: _.times(count, j => ({
-                    input: subFillInputs[j],
-                    output: subFillOutputs[j],
-                })),
-            };
-        });
-    }
-
-    function countCollapsedFills(fillOrders: QuoteFillOrderCall[] | OptimizedMarketOrder[]): number {
-        let count = 0;
-        if ((fillOrders as any)[0].fills) {
-            const orders = (fillOrders as any) as OptimizedMarketOrder[];
-            for (const o of orders) {
-                count += o.fills.length;
-            }
-        } else {
-            const orders = (fillOrders as any) as QuoteFillOrderCall[];
-            for (const fo of orders) {
-                count += fo.order.fills.length;
-            }
-        }
-        return count;
+    function createOrderFill(input: BigNumber, output: BigNumber, count: number): Fill {
+        return {
+            type: FillQuoteTransformerOrderType.Bridge,
+            sourcePathId: nativeSourcePathId,
+            source: ERC20BridgeSource.Uniswap,
+            fillData: {},
+            input: input,
+            output: output,
+            flags: BigInt(0),
+            adjustedOutput: output,
+        };
     }
 
     function randomSide(): MarketOperation {
@@ -522,7 +498,6 @@ describe('quote_simulation tests', async () => {
                 expect(totalFilledInput).to.bignumber.eq(fillableInput);
                 expect(totalFilledOutput).to.bignumber.eq(fillableOutput);
                 expect(result.protocolFee).to.bignumber.eq(fillOrders.length);
-                expect(result.gas).to.eq(countCollapsedFills(fillOrders));
             });
 
             it('can partial fill orders', () => {
@@ -551,7 +526,6 @@ describe('quote_simulation tests', async () => {
                 expect(totalFilledInput).to.bignumber.eq(fillableInput);
                 expect(totalFilledOutput).to.bignumber.eq(fillableOutput);
                 expect(result.protocolFee).to.bignumber.eq(fillOrders.length);
-                expect(result.gas).to.eq(countCollapsedFills(fillOrders));
             });
 
             it('can exactly fill orders with input fees', () => {
@@ -574,7 +548,6 @@ describe('quote_simulation tests', async () => {
                 assertRoughlyEquals(totalFilledOutput, fillableOutput);
                 assertEqualRates(result.inputFee.div(result.input), signedInputFeeRate);
                 expect(result.protocolFee).to.bignumber.eq(fillOrders.length);
-                expect(result.gas).to.eq(countCollapsedFills(fillOrders));
             });
 
             it('can partial fill orders with input fees', () => {
@@ -598,7 +571,6 @@ describe('quote_simulation tests', async () => {
                 expect(totalFilledOutput).to.bignumber.lt(fillableOutput);
                 assertEqualRates(result.inputFee.div(result.input), signedInputFeeRate);
                 expect(result.protocolFee).to.bignumber.lte(fillOrders.length);
-                expect(result.gas).to.lte(countCollapsedFills(fillOrders));
             });
 
             it('does not over fill orders with input fees', () => {
@@ -622,7 +594,6 @@ describe('quote_simulation tests', async () => {
                 assertRoughlyEquals(totalFilledOutput, fillableOutput);
                 assertEqualRates(result.inputFee.div(result.input), signedInputFeeRate);
                 expect(result.protocolFee).to.bignumber.eq(fillOrders.length);
-                expect(result.gas).to.eq(countCollapsedFills(fillOrders));
             });
 
             it('can exactly fill orders with output fees', () => {
@@ -645,7 +616,6 @@ describe('quote_simulation tests', async () => {
                 assertRoughlyEquals(totalFilledOutput, totalFillableOutput);
                 assertEqualRates(result.outputFee.div(result.output), signedOutputFeeRate);
                 expect(result.protocolFee).to.bignumber.eq(fillOrders.length);
-                expect(result.gas).to.eq(countCollapsedFills(fillOrders));
             });
 
             it('can partial fill orders with output fees', () => {
@@ -669,7 +639,6 @@ describe('quote_simulation tests', async () => {
                 expect(totalFilledOutput).to.bignumber.lt(totalFillableOutput);
                 assertEqualRates(result.outputFee.div(result.output), signedOutputFeeRate);
                 expect(result.protocolFee).to.bignumber.lte(fillOrders.length);
-                expect(result.gas).to.lte(countCollapsedFills(fillOrders));
             });
 
             it('does not over fill orders with output fees', () => {
@@ -693,7 +662,6 @@ describe('quote_simulation tests', async () => {
                 assertRoughlyEquals(totalFilledOutput, totalFillableOutput);
                 assertEqualRates(result.outputFee.div(result.output), signedOutputFeeRate);
                 expect(result.protocolFee).to.bignumber.eq(fillOrders.length);
-                expect(result.gas).to.eq(countCollapsedFills(fillOrders));
             });
         });
     });
@@ -771,7 +739,6 @@ describe('quote_simulation tests', async () => {
                 gasPrice: ONE,
                 opts: { gasSchedule: GAS_SCHEDULE, protocolFeeMultiplier: ONE },
             });
-            expect(result.gas).to.eq(countCollapsedFills(orders));
             expect(result.protocolFeeAmount).to.bignumber.eq(orders.length);
             expect(result.takerFeeTakerAssetAmount).to.bignumber.eq(0);
             expect(result.takerFeeMakerAssetAmount).to.bignumber.eq(0);
@@ -895,7 +862,6 @@ describe('quote_simulation tests', async () => {
                 gasPrice: ONE,
                 opts: { gasSchedule: GAS_SCHEDULE, protocolFeeMultiplier: ONE },
             });
-            expect(result.gas).to.eq(countCollapsedFills(orders));
             expect(result.protocolFeeAmount).to.bignumber.eq(orders.length);
 
             assertRoughlyEquals(result.makerAssetAmount, fillableInput);

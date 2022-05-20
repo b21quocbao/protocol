@@ -23,6 +23,8 @@ import { ExchangeProxySwapQuoteConsumer } from '../src/quote_consumers/exchange_
 import { AffiliateFeeType, MarketBuySwapQuote, MarketOperation, MarketSellSwapQuote } from '../src/types';
 import {
     ERC20BridgeSource,
+    Fill,
+    NativeFillData,
     OptimizedLimitOrder,
     OptimizedMarketOrder,
 } from '../src/utils/market_operation_utils/types';
@@ -100,7 +102,7 @@ describe('ExchangeProxySwapQuoteConsumer', () => {
             takerToken: order.takerToken,
             makerAmount: order.makerAmount,
             takerAmount: order.takerAmount,
-            fills: [],
+            fill: {} as Fill<NativeFillData>,
             ...optimizerFields,
         };
     }

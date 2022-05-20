@@ -9,11 +9,10 @@ import * as TypeMoq from 'typemoq';
 
 import { MarketOperation, NativeOrderWithFillableAmounts } from '../src/types';
 import {
-    CollapsedFill,
     DexSample,
     ERC20BridgeSource,
+    Fill,
     MultiHopFillData,
-    NativeCollapsedFill,
     NativeFillData,
     NativeLimitOrderFillData,
     NativeRfqOrderFillData,
@@ -34,7 +33,7 @@ import { getRandomAmount, getRandomSignature } from './utils/utils';
 chaiSetup.configure();
 const expect = chai.expect;
 
-function collapsedFillFromNativeOrder(order: NativeOrderWithFillableAmounts): NativeCollapsedFill {
+function fillFromNativeOrder(order: NativeOrderWithFillableAmounts): Fill<NativeFillData> {
     const fillData = {
         order: order.order,
         signature: order.signature,
@@ -50,7 +49,8 @@ function collapsedFillFromNativeOrder(order: NativeOrderWithFillableAmounts): Na
             order.type === FillQuoteTransformerOrderType.Limit
                 ? (fillData as NativeLimitOrderFillData)
                 : (fillData as NativeRfqOrderFillData),
-        subFills: [],
+        adjustedOutput: order.order.makerAmount,
+        flags: BigInt(0),
     };
 }
 
@@ -111,21 +111,23 @@ describe('generateQuoteReport', async () => {
         ];
 
         // generate path
-        const uniswap2Fill: CollapsedFill = {
+        const uniswap2Fill: Fill = {
             ...uniswapSample2,
-            subFills: [],
             sourcePathId: hexUtils.random(),
             type: FillQuoteTransformerOrderType.Bridge,
+            adjustedOutput: uniswapSample2.output,
+            flags: BigInt(0),
         };
-        const kyber2Fill: CollapsedFill = {
+        const kyber2Fill: Fill = {
             ...kyberSample2,
-            subFills: [],
             sourcePathId: hexUtils.random(),
             type: FillQuoteTransformerOrderType.Bridge,
+            adjustedOutput: kyberSample2.output,
+            flags: BigInt(0),
         };
-        const orderbookOrder2Fill: CollapsedFill = collapsedFillFromNativeOrder(orderbookOrder2);
-        const rfqtOrder2Fill: CollapsedFill = collapsedFillFromNativeOrder(rfqtOrder2);
-        const pathGenerated: CollapsedFill[] = [rfqtOrder2Fill, orderbookOrder2Fill, uniswap2Fill, kyber2Fill];
+        const orderbookOrder2Fill: Fill = fillFromNativeOrder(orderbookOrder2);
+        const rfqtOrder2Fill: Fill = fillFromNativeOrder(rfqtOrder2);
+        const pathGenerated: Fill[] = [rfqtOrder2Fill, orderbookOrder2Fill, uniswap2Fill, kyber2Fill];
 
         // quote generator mock
         const quoteRequestor = TypeMoq.Mock.ofType<QuoteRequestor>();
@@ -241,20 +243,22 @@ describe('generateQuoteReport', async () => {
         const nativeOrders = [orderbookOrder1, orderbookOrder2];
 
         // generate path
-        const orderbookOrder1Fill: CollapsedFill = collapsedFillFromNativeOrder(orderbookOrder1);
-        const uniswap1Fill: CollapsedFill = {
+        const orderbookOrder1Fill: Fill = fillFromNativeOrder(orderbookOrder1);
+        const uniswap1Fill: Fill = {
             ...uniswapSample1,
-            subFills: [],
             sourcePathId: hexUtils.random(),
             type: FillQuoteTransformerOrderType.Bridge,
+            adjustedOutput: uniswapSample1.output,
+            flags: BigInt(0),
         };
-        const kyber1Fill: CollapsedFill = {
+        const kyber1Fill: Fill = {
             ...kyberSample1,
-            subFills: [],
             sourcePathId: hexUtils.random(),
             type: FillQuoteTransformerOrderType.Bridge,
+            adjustedOutput: kyberSample1.output,
+            flags: BigInt(0),
         };
-        const pathGenerated: CollapsedFill[] = [orderbookOrder1Fill, uniswap1Fill, kyber1Fill];
+        const pathGenerated: Fill[] = [orderbookOrder1Fill, uniswap1Fill, kyber1Fill];
 
         const orderReport = generateQuoteReport(marketOperation, nativeOrders, pathGenerated);
 

@@ -1020,7 +1020,7 @@ describe('MarketOperationUtils tests', () => {
                 const improvedOrders = improvedOrdersResponse.optimizedOrders;
                 expect(improvedOrders).to.not.be.length(0);
                 for (const order of improvedOrders) {
-                    const expectedMakerAmount = order.fills[0].output;
+                    const expectedMakerAmount = order.fill.output;
                     const slippage = new BigNumber(1).minus(order.makerAmount.div(expectedMakerAmount.plus(1)));
                     assertRoughlyEquals(slippage, bridgeSlippage, 1);
                 }
@@ -1042,7 +1042,7 @@ describe('MarketOperationUtils tests', () => {
                     { ...DEFAULT_OPTS, numSamples: 4 },
                 );
                 const improvedOrders = improvedOrdersResponse.optimizedOrders;
-                const orderSources = improvedOrders.map(o => o.fills[0].source);
+                const orderSources = improvedOrders.map(o => o.fill.source);
                 const expectedSources = [
                     ERC20BridgeSource.SushiSwap,
                     ERC20BridgeSource.Uniswap,
@@ -1083,7 +1083,7 @@ describe('MarketOperationUtils tests', () => {
                     { ...DEFAULT_OPTS, numSamples: 4, feeSchedule },
                 );
                 const improvedOrders = improvedOrdersResponse.optimizedOrders;
-                const orderSources = improvedOrders.map(o => o.fills[0].source);
+                const orderSources = improvedOrders.map(o => o.fill.source);
                 const expectedSources = [
                     ERC20BridgeSource.Native,
                     ERC20BridgeSource.Uniswap,
@@ -1122,7 +1122,7 @@ describe('MarketOperationUtils tests', () => {
                     { ...DEFAULT_OPTS, numSamples: 4, feeSchedule },
                 );
                 const improvedOrders = improvedOrdersResponse.optimizedOrders;
-                const orderSources = improvedOrders.map(o => o.fills[0].source);
+                const orderSources = improvedOrders.map(o => o.fill.source);
                 const expectedSources = [
                     ERC20BridgeSource.Native,
                     ERC20BridgeSource.SushiSwap,
@@ -1149,7 +1149,7 @@ describe('MarketOperationUtils tests', () => {
                     { ...DEFAULT_OPTS, numSamples: 4 },
                 );
                 const improvedOrders = improvedOrdersResponse.optimizedOrders;
-                const orderSources = improvedOrders.map(o => o.fills[0].source);
+                const orderSources = improvedOrders.map(o => o.fill.source);
                 const expectedSources = [
                     ERC20BridgeSource.SushiSwap,
                     ERC20BridgeSource.Uniswap,
@@ -1176,7 +1176,7 @@ describe('MarketOperationUtils tests', () => {
                     { ...DEFAULT_OPTS, numSamples: 4, allowFallback: true, maxFallbackSlippage: 0.25 },
                 );
                 const improvedOrders = improvedOrdersResponse.optimizedOrders;
-                const orderSources = improvedOrders.map(o => o.fills[0].source);
+                const orderSources = improvedOrders.map(o => o.fill.source);
                 const firstSources = [ERC20BridgeSource.Native, ERC20BridgeSource.Native, ERC20BridgeSource.Uniswap];
                 const secondSources: ERC20BridgeSource[] = [];
                 expect(orderSources.slice(0, firstSources.length).sort()).to.deep.eq(firstSources.sort());
@@ -1274,7 +1274,7 @@ describe('MarketOperationUtils tests', () => {
                     },
                 );
                 const improvedOrders = improvedOrdersResponse.optimizedOrders;
-                const orderSources = improvedOrders.map(o => o.fills[0].source);
+                const orderSources = improvedOrders.map(o => o.fill.source);
                 const expectedSources = [ERC20BridgeSource.LiquidityProvider];
                 expect(orderSources).to.deep.eq(expectedSources);
             });
@@ -1470,7 +1470,7 @@ describe('MarketOperationUtils tests', () => {
                 const improvedOrders = improvedOrdersResponse.optimizedOrders;
                 expect(improvedOrders).to.not.be.length(0);
                 for (const order of improvedOrders) {
-                    const expectedTakerAmount = order.fills[0].output;
+                    const expectedTakerAmount = order.fill.output;
                     const slippage = order.takerAmount.div(expectedTakerAmount.plus(1)).minus(1);
                     assertRoughlyEquals(slippage, bridgeSlippage, 1);
                 }
@@ -1492,7 +1492,7 @@ describe('MarketOperationUtils tests', () => {
                     { ...DEFAULT_OPTS, numSamples: 4 },
                 );
                 const improvedOrders = improvedOrdersResponse.optimizedOrders;
-                const orderSources = improvedOrders.map(o => o.fills[0].source);
+                const orderSources = improvedOrders.map(o => o.fill.source);
                 const expectedSources = [
                     ERC20BridgeSource.SushiSwap,
                     ERC20BridgeSource.Uniswap,
@@ -1534,7 +1534,7 @@ describe('MarketOperationUtils tests', () => {
                     { ...DEFAULT_OPTS, numSamples: 4, feeSchedule },
                 );
                 const improvedOrders = improvedOrdersResponse.optimizedOrders;
-                const orderSources = improvedOrders.map(o => o.fills[0].source);
+                const orderSources = improvedOrders.map(o => o.fill.source);
                 const expectedSources = [
                     ERC20BridgeSource.Uniswap,
                     ERC20BridgeSource.SushiSwap,
@@ -1573,7 +1573,7 @@ describe('MarketOperationUtils tests', () => {
                     { ...DEFAULT_OPTS, numSamples: 4, feeSchedule },
                 );
                 const improvedOrders = improvedOrdersResponse.optimizedOrders;
-                const orderSources = improvedOrders.map(o => o.fills[0].source);
+                const orderSources = improvedOrders.map(o => o.fill.source);
                 const expectedSources = [
                     ERC20BridgeSource.Native,
                     ERC20BridgeSource.SushiSwap,
@@ -1599,7 +1599,7 @@ describe('MarketOperationUtils tests', () => {
                     { ...DEFAULT_OPTS, numSamples: 4, allowFallback: true, maxFallbackSlippage: 0.25 },
                 );
                 const improvedOrders = improvedOrdersResponse.optimizedOrders;
-                const orderSources = improvedOrders.map(o => o.fills[0].source);
+                const orderSources = improvedOrders.map(o => o.fill.source);
                 const firstSources = [ERC20BridgeSource.Native, ERC20BridgeSource.Native, ERC20BridgeSource.Uniswap];
                 const secondSources: ERC20BridgeSource[] = [];
                 expect(orderSources.slice(0, firstSources.length).sort()).to.deep.eq(firstSources.sort());
@@ -1644,7 +1644,7 @@ describe('MarketOperationUtils tests', () => {
                     },
                 );
                 const improvedOrders = improvedOrdersResponse.optimizedOrders;
-                const orderSources = improvedOrders.map(o => o.fills[0].source);
+                const orderSources = improvedOrders.map(o => o.fill.source);
                 const expectedSources = [ERC20BridgeSource.LiquidityProvider];
                 expect(orderSources).to.deep.eq(expectedSources);
             });

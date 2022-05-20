@@ -141,7 +141,6 @@ export {
 export {
     BalancerFillData,
     BancorFillData,
-    CollapsedFill,
     CurveFillData,
     CurveFunctionSelectors,
     CurveInfo,
@@ -161,7 +160,6 @@ export {
     MarketDepthSide,
     MooniswapFillData,
     MultiHopFillData,
-    NativeCollapsedFill,
     NativeRfqOrderFillData,
     NativeLimitOrderFillData,
     NativeFillData,

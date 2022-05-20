@@ -1,5 +1,6 @@
 import { BridgeProtocol, encodeBridgeSourceId, FillQuoteTransformerOrderType } from '@0x/protocol-utils';
 import { AbiEncoder, BigNumber } from '@0x/utils';
+import _ = require('lodash');
 
 import { AssetSwapperContractAddresses, MarketOperation } from '../../types';
 
@@ -11,12 +12,12 @@ import {
     BalancerV2BatchSwapFillData,
     BalancerV2FillData,
     BancorFillData,
-    CollapsedFill,
     CompoundFillData,
     CurveFillData,
     DexSample,
     DODOFillData,
     ERC20BridgeSource,
+    Fill,
     FillData,
     FinalUniswapV3FillData,
     GeistFillData,
@@ -29,7 +30,7 @@ import {
     MakerPsmFillData,
     MooniswapFillData,
     MultiHopFillData,
-    NativeCollapsedFill,
+    NativeFillData,
     NativeLimitOrderFillData,
     NativeRfqOrderFillData,
     OptimizedMarketBridgeOrder,
@@ -60,23 +61,25 @@ export function createOrdersFromTwoHopSample(
 ): OptimizedMarketOrder[] {
     const [makerToken, takerToken] = getMakerTakerTokens(opts);
     const { firstHopSource, secondHopSource, intermediateToken } = sample.fillData;
-    const firstHopFill: CollapsedFill = {
+    const firstHopFill: Fill = {
         sourcePathId: '',
         source: firstHopSource.source,
         type: FillQuoteTransformerOrderType.Bridge,
         input: opts.side === MarketOperation.Sell ? sample.input : ZERO_AMOUNT,
         output: opts.side === MarketOperation.Sell ? ZERO_AMOUNT : sample.output,
-        subFills: [],
+        adjustedOutput: opts.side === MarketOperation.Sell ? ZERO_AMOUNT : sample.output,
         fillData: firstHopSource.fillData,
+        flags: BigInt(0),
     };
-    const secondHopFill: CollapsedFill = {
+    const secondHopFill: Fill = {
         sourcePathId: '',
         source: secondHopSource.source,
         type: FillQuoteTransformerOrderType.Bridge,
         input: opts.side === MarketOperation.Sell ? MAX_UINT256 : sample.input,
         output: opts.side === MarketOperation.Sell ? sample.output : MAX_UINT256,
-        subFills: [],
+        adjustedOutput: opts.side === MarketOperation.Sell ? sample.output : MAX_UINT256,
         fillData: secondHopSource.fillData,
+        flags: BigInt(0),
     };
     return [
         createBridgeOrder(firstHopFill, intermediateToken, takerToken, opts.side),
@@ -399,7 +402,7 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
 }
 
 export function createBridgeOrder(
-    fill: CollapsedFill,
+    fill: Fill,
     makerToken: string,
     takerToken: string,
     side: MarketOperation,
@@ -414,11 +417,11 @@ export function createBridgeOrder(
         source: fill.source,
         sourcePathId: fill.sourcePathId,
         type: FillQuoteTransformerOrderType.Bridge,
-        fills: [fill],
+        fill: _.omit(fill, 'flags') as Omit<Fill, 'flags'>,
     };
 }
 
-function createFinalBridgeOrderFillDataFromCollapsedFill(fill: CollapsedFill): FillData {
+function createFinalBridgeOrderFillDataFromCollapsedFill(fill: Fill): FillData {
     switch (fill.source) {
         case ERC20BridgeSource.UniswapV3: {
             const fd = fill.fillData as UniswapV3FillData;
@@ -587,7 +590,7 @@ export const BRIDGE_ENCODERS: {
     [ERC20BridgeSource.Geist]: AbiEncoder.create('(address,address)'),
 };
 
-function getFillTokenAmounts(fill: CollapsedFill, side: MarketOperation): [BigNumber, BigNumber] {
+function getFillTokenAmounts(fill: Fill, side: MarketOperation): [BigNumber, BigNumber] {
     return [
         // Maker asset amount.
         side === MarketOperation.Sell ? fill.output.integerValue(BigNumber.ROUND_DOWN) : fill.input,
@@ -597,7 +600,7 @@ function getFillTokenAmounts(fill: CollapsedFill, side: MarketOperation): [BigNu
 }
 
 export function createNativeOptimizedOrder(
-    fill: NativeCollapsedFill,
+    fill: Fill<NativeFillData>,
     side: MarketOperation,
 ): OptimizedMarketOrderBase<NativeLimitOrderFillData> | OptimizedMarketOrderBase<NativeRfqOrderFillData> {
     const fillData = fill.fillData;
@@ -609,7 +612,7 @@ export function createNativeOptimizedOrder(
         takerToken: fillData.order.takerToken,
         makerAmount,
         takerAmount,
-        fills: [fill],
+        fill: _.omit(fill, 'flags') as Omit<Fill, 'flags'>,
         fillData,
     };
     return fill.type === FillQuoteTransformerOrderType.Rfq

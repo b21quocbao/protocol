@@ -49,9 +49,9 @@ import { DexOrderSampler, getSampleAmounts } from './sampler';
 import { SourceFilters } from './source_filters';
 import {
     AggregationError,
-    CollapsedFill,
     DexSample,
     ERC20BridgeSource,
+    Fill,
     GenerateOptimizedOrdersOpts,
     GetMarketOrdersOpts,
     MarketSideLiquidity,
@@ -553,12 +553,12 @@ export class MarketOperationUtils {
             throw new Error(AggregationError.NoOptimalPath);
         }
 
-        const collapsedPath = optimalPath.collapse(orderOpts);
+        const finalizedPath = optimalPath.finalize(orderOpts);
 
         return {
-            optimizedOrders: collapsedPath.orders,
-            liquidityDelivered: collapsedPath.collapsedFills as CollapsedFill[],
-            sourceFlags: collapsedPath.sourceFlags,
+            optimizedOrders: finalizedPath.orders,
+            liquidityDelivered: finalizedPath.fills,
+            sourceFlags: finalizedPath.sourceFlags,
             marketSideLiquidity,
             adjustedRate: optimalPathAdjustedRate,
             takerAmountPerEth,
@@ -805,75 +805,6 @@ export class MarketOperationUtils {
             }),
         );
     }
-
-    /*
-     * TODO(kimpers): Remove this when we know that it's safe to drop the fallbacks on native orders
-    // tslint:disable-next-line: prefer-function-over-method
-    private async _addOptionalFallbackAsync(
-        side: MarketOperation,
-        inputAmount: BigNumber,
-        optimalPath: Path,
-        dexQuotes: DexSample[][],
-        fills: Fill[][],
-        opts: GenerateOptimizedOrdersOpts,
-        penaltyOpts: PathPenaltyOpts,
-    ): Promise<void> {
-        const maxFallbackSlippage = opts.maxFallbackSlippage || 0;
-        const optimalPathRate = optimalPath ? optimalPath.adjustedRate() : ZERO_AMOUNT;
-        // Generate a fallback path if sources requiring a fallback (fragile) are in the optimal path.
-        // Native is relatively fragile (limit order collision, expiry, or lack of available maker balance)
-        // LiquidityProvider is relatively fragile (collision)
-        const fragileSources = [ERC20BridgeSource.Native, ERC20BridgeSource.LiquidityProvider];
-        const fragileFills = optimalPath.fills.filter(f => fragileSources.includes(f.source));
-        if (opts.allowFallback && fragileFills.length !== 0) {
-            // We create a fallback path that is exclusive of Native liquidity
-            // This is the optimal on-chain path for the entire input amount
-            const sturdyPenaltyOpts = {
-                ...penaltyOpts,
-                exchangeProxyOverhead: (sourceFlags: bigint) =>
-                    // tslint:disable-next-line: no-bitwise
-                    penaltyOpts.exchangeProxyOverhead(sourceFlags | optimalPath.sourceFlags),
-            };
-
-            let sturdyOptimalPath: Path | undefined;
-            if (SHOULD_USE_RUST_ROUTER) {
-                const sturdySamples = dexQuotes.filter(
-                    samples => samples.length > 0 && !fragileSources.includes(samples[0].source),
-                );
-                sturdyOptimalPath = findOptimalRustPathFromSamples(
-                    side,
-                    sturdySamples,
-                    [],
-                    inputAmount,
-                    sturdyPenaltyOpts,
-                    opts.feeSchedule,
-                    this._sampler.chainId,
-                    opts.neonRouterNumSamples,
-                    undefined, // hack: set sampler metrics to undefined to avoid fallback timings
-                );
-            } else {
-                const sturdyFills = fills.filter(p => p.length > 0 && !fragileSources.includes(p[0].source));
-                sturdyOptimalPath = await findOptimalPathJSAsync(
-                    side,
-                    sturdyFills,
-                    inputAmount,
-                    opts.runLimit,
-                    undefined, // hack: set sampler metrics to undefined to avoid fallback timings
-                    sturdyPenaltyOpts,
-                );
-            }
-            // Calculate the slippage of on-chain sources compared to the most optimal path
-            // if within an acceptable threshold we enable a fallback to prevent reverts
-            if (
-                sturdyOptimalPath !== undefined &&
-                (fragileFills.length === optimalPath.fills.length ||
-                    sturdyOptimalPath.adjustedSlippage(optimalPathRate) <= maxFallbackSlippage)
-            ) {
-                optimalPath.addFallback(sturdyOptimalPath);
-            }
-        }
-    }
-    */
 }
 
 // tslint:disable: max-file-line-count

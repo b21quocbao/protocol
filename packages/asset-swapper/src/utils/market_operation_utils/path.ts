@@ -1,4 +1,5 @@
 import { BigNumber } from '@0x/utils';
+import _ = require('lodash');
 
 import { MarketOperation } from '../../types';
 
@@ -6,14 +7,7 @@ import { POSITIVE_INF, ZERO_AMOUNT } from './constants';
 import { ethToOutputAmount } from './fills';
 import { createBridgeOrder, createNativeOptimizedOrder, CreateOrderFromPathOpts, getMakerTakerTokens } from './orders';
 import { getCompleteRate, getRate } from './rate_utils';
-import {
-    CollapsedFill,
-    ERC20BridgeSource,
-    ExchangeProxyOverhead,
-    Fill,
-    NativeCollapsedFill,
-    OptimizedMarketOrder,
-} from './types';
+import { ERC20BridgeSource, ExchangeProxyOverhead, Fill, NativeFillData, OptimizedMarketOrder } from './types';
 
 // tslint:disable: prefer-for-of no-bitwise completed-docs
 
@@ -37,7 +31,6 @@ export const DEFAULT_PATH_PENALTY_OPTS: PathPenaltyOpts = {
 };
 
 export class Path {
-    public collapsedFills?: ReadonlyArray<CollapsedFill>;
     public orders?: OptimizedMarketOrder[];
     public sourceFlags: bigint = BigInt(0);
     protected _size: PathSize = { input: ZERO_AMOUNT, output: ZERO_AMOUNT };
@@ -65,24 +58,23 @@ export class Path {
     ) {}
 
     /**
-     * Collapses this path, creating fillable orders with the information required
+     * Finalizes this path, creating fillable orders with the information required
      * for settlement
      */
-    public collapse(opts: CreateOrderFromPathOpts): CollapsedPath {
+    public finalize(opts: CreateOrderFromPathOpts): FinalizedPath {
         const [makerToken, takerToken] = getMakerTakerTokens(opts);
-        const collapsedFills = this.collapsedFills === undefined ? this._collapseFills() : this.collapsedFills;
         this.orders = [];
-        for (let i = 0; i < collapsedFills.length; ) {
-            if (collapsedFills[i].source === ERC20BridgeSource.Native) {
-                this.orders.push(createNativeOptimizedOrder(collapsedFills[i] as NativeCollapsedFill, opts.side));
-                ++i;
-                continue;
+        for (const fill of this.fills) {
+            // internal BigInt flag field is not supported JSON and is tricky
+            // to remove upstream. Since it's not needed in a FinalizedPath we just drop it.
+            const normalizedFill = _.omit(fill, 'flags') as Fill;
+            if (fill.source === ERC20BridgeSource.Native) {
+                this.orders.push(createNativeOptimizedOrder(normalizedFill as Fill<NativeFillData>, opts.side));
+            } else {
+                this.orders.push(createBridgeOrder(normalizedFill, makerToken, takerToken, opts.side));
             }
-
-            this.orders.push(createBridgeOrder(collapsedFills[i], makerToken, takerToken, opts.side));
-            i += 1;
         }
-        return this as CollapsedPath;
+        return this as FinalizedPath;
     }
 
     public adjustedSize(): PathSize {
@@ -145,34 +137,6 @@ export class Path {
         }
     }
 
-    private _collapseFills(): ReadonlyArray<CollapsedFill> {
-        this.collapsedFills = [];
-        for (const fill of this.fills) {
-            const source = fill.source;
-            if (this.collapsedFills.length !== 0 && source !== ERC20BridgeSource.Native) {
-                const prevFill = this.collapsedFills[this.collapsedFills.length - 1];
-                // If the last fill is from the same source, merge them.
-                if (prevFill.sourcePathId === fill.sourcePathId) {
-                    prevFill.input = prevFill.input.plus(fill.input);
-                    prevFill.output = prevFill.output.plus(fill.output);
-                    prevFill.fillData = fill.fillData;
-                    prevFill.subFills.push(fill);
-                    continue;
-                }
-            }
-            (this.collapsedFills as CollapsedFill[]).push({
-                sourcePathId: fill.sourcePathId,
-                source: fill.source,
-                type: fill.type,
-                fillData: fill.fillData,
-                input: fill.input,
-                output: fill.output,
-                subFills: [fill],
-            });
-        }
-        return this.collapsedFills;
-    }
-
     private _addFillSize(fill: Fill): void {
         if (this._size.input.plus(fill.input).isGreaterThan(this.targetInput)) {
             const remainingInput = this.targetInput.minus(this._size.input);
@@ -192,7 +156,6 @@ export class Path {
     }
 }
 
-export interface CollapsedPath extends Path {
-    readonly collapsedFills: ReadonlyArray<CollapsedFill>;
+export interface FinalizedPath extends Path {
     readonly orders: OptimizedMarketOrder[];
 }

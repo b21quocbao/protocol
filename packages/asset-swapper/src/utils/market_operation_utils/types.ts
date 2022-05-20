@@ -396,39 +396,6 @@ export interface Fill<TFillData extends FillData = FillData> {
     adjustedOutput: BigNumber;
 }
 
-/**
- * Represents continguous fills on a path that have been merged together.
- */
-export interface CollapsedFill<TFillData extends FillData = FillData> {
-    source: ERC20BridgeSource;
-    type: FillQuoteTransformerOrderType; // should correspond with TFillData
-    fillData: TFillData;
-    // Unique ID of the original source path this fill belongs to.
-    // This is generated when the path is generated and is useful to distinguish
-    // paths that have the same `source` IDs but are distinct (e.g., Curves).
-    sourcePathId: string;
-    /**
-     * Total input amount (sum of `subFill`s)
-     */
-    input: BigNumber;
-    /**
-     * Total output amount (sum of `subFill`s)
-     */
-    output: BigNumber;
-    /**
-     * Quantities of all the fills that were collapsed.
-     */
-    subFills: Array<{
-        input: BigNumber;
-        output: BigNumber;
-    }>;
-}
-
-/**
- * A `CollapsedFill` wrapping a native order.
- */
-export interface NativeCollapsedFill extends CollapsedFill<NativeFillData> {}
-
 export interface OptimizedMarketOrderBase<TFillData extends FillData = FillData> {
     source: ERC20BridgeSource;
     fillData: TFillData;
@@ -437,7 +404,7 @@ export interface OptimizedMarketOrderBase<TFillData extends FillData = FillData>
     takerToken: string;
     makerAmount: BigNumber; // The amount we wish to buy from this order, e.g inclusive of any previous partial fill
     takerAmount: BigNumber; // The amount we wish to fill this for, e.g inclusive of any previous partial fill
-    fills: CollapsedFill[];
+    fill: Omit<Fill, 'flags'>;
 }
 
 export interface OptimizedMarketBridgeOrder<TFillData extends FillData = FillData>
@@ -621,7 +588,7 @@ export interface SourceQuoteOperation<TFillData extends FillData = FillData> ext
 export interface OptimizerResult {
     optimizedOrders: OptimizedMarketOrder[];
     sourceFlags: bigint;
-    liquidityDelivered: CollapsedFill[] | DexSample<MultiHopFillData>;
+    liquidityDelivered: Readonly<Fill[] | DexSample<MultiHopFillData>>;
     marketSideLiquidity: MarketSideLiquidity;
     adjustedRate: BigNumber;
     takerAmountPerEth: BigNumber;
