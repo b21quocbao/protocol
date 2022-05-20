@@ -8,7 +8,7 @@ import { performance } from 'perf_hooks';
 import { DEFAULT_WARNING_LOGGER } from '../../constants';
 import { MarketOperation, NativeOrderWithFillableAmounts } from '../../types';
 
-import { VIP_ERC20_BRIDGE_SOURCES_BY_CHAIN_ID } from './constants';
+import { VIP_ERC20_BRIDGE_SOURCES_BY_CHAIN_ID, ZERO_AMOUNT } from './constants';
 import { dexSampleToFill, ethToOutputAmount, nativeOrderToFill } from './fills';
 import { Path, PathPenaltyOpts } from './path';
 import { DexSample, ERC20BridgeSource, FeeSchedule, Fill, FillAdjustor, FillData, SamplerMetrics } from './types';
@@ -44,7 +44,7 @@ function calculateOuputFee(
 ): BigNumber {
     if (isDexSample(sampleOrNativeOrder)) {
         const { input, output, source, fillData } = sampleOrNativeOrder;
-        const fee = fees[source]?.(fillData) || 0;
+        const fee = fees[source]?.(fillData).fee || ZERO_AMOUNT;
         const outputFee = ethToOutputAmount({
             input,
             output,
@@ -55,7 +55,7 @@ function calculateOuputFee(
         return outputFee;
     } else {
         const { input, output } = nativeOrderToNormalizedAmounts(side, sampleOrNativeOrder);
-        const fee = fees[ERC20BridgeSource.Native]?.(sampleOrNativeOrder) || 0;
+        const fee = fees[ERC20BridgeSource.Native]?.(sampleOrNativeOrder).fee || ZERO_AMOUNT;
         const outputFee = ethToOutputAmount({
             input,
             output,
@@ -151,7 +151,7 @@ function findRoutesAndCreateOptimalPath(
                     opts.inputAmountPerEth,
                     fees,
                     false,
-                ) as Fill | undefined;
+                );
                 // Note: If the order has an adjusted rate of less than or equal to 0 it will be undefined
                 if (nativeFill) {
                     // NOTE: For Limit/RFQ orders we are done here. No need to scale output

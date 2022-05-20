@@ -149,6 +149,7 @@ export {
     ERC20BridgeSource,
     ExchangeProxyOverhead,
     FeeSchedule,
+    GasSchedule,
     Fill,
     FillAdjustor,
     FillData,

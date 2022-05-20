@@ -51,6 +51,7 @@ function fillFromNativeOrder(order: NativeOrderWithFillableAmounts): Fill<Native
                 : (fillData as NativeRfqOrderFillData),
         adjustedOutput: order.order.makerAmount,
         flags: BigInt(0),
+        gas: 1,
     };
 }
 
@@ -117,6 +118,7 @@ describe('generateQuoteReport', async () => {
             type: FillQuoteTransformerOrderType.Bridge,
             adjustedOutput: uniswapSample2.output,
             flags: BigInt(0),
+            gas: 1,
         };
         const kyber2Fill: Fill = {
             ...kyberSample2,
@@ -124,6 +126,7 @@ describe('generateQuoteReport', async () => {
             type: FillQuoteTransformerOrderType.Bridge,
             adjustedOutput: kyberSample2.output,
             flags: BigInt(0),
+            gas: 1,
         };
         const orderbookOrder2Fill: Fill = fillFromNativeOrder(orderbookOrder2);
         const rfqtOrder2Fill: Fill = fillFromNativeOrder(rfqtOrder2);
@@ -250,6 +253,7 @@ describe('generateQuoteReport', async () => {
             type: FillQuoteTransformerOrderType.Bridge,
             adjustedOutput: uniswapSample1.output,
             flags: BigInt(0),
+            gas: 1,
         };
         const kyber1Fill: Fill = {
             ...kyberSample1,
@@ -257,6 +261,7 @@ describe('generateQuoteReport', async () => {
             type: FillQuoteTransformerOrderType.Bridge,
             adjustedOutput: kyberSample1.output,
             flags: BigInt(0),
+            gas: 1,
         };
         const pathGenerated: Fill[] = [orderbookOrder1Fill, uniswap1Fill, kyber1Fill];
 

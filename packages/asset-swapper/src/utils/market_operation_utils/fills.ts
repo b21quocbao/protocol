@@ -3,7 +3,7 @@ import { BigNumber, hexUtils } from '@0x/utils';
 
 import { MarketOperation, NativeOrderWithFillableAmounts } from '../../types';
 
-import { POSITIVE_INF, SOURCE_FLAGS } from './constants';
+import { DEFAULT_FEE_ESTIMATE, POSITIVE_INF, SOURCE_FLAGS } from './constants';
 import { DexSample, ERC20BridgeSource, FeeSchedule, Fill } from './types';
 
 // tslint:disable: prefer-for-of no-bitwise completed-docs
@@ -42,7 +42,8 @@ export function nativeOrderToFill(
     const takerAmount = fillableTakerAmount.plus(fillableTakerFeeAmount);
     const input = side === MarketOperation.Sell ? takerAmount : makerAmount;
     const output = side === MarketOperation.Sell ? makerAmount : takerAmount;
-    const fee = fees[ERC20BridgeSource.Native] === undefined ? 0 : fees[ERC20BridgeSource.Native]!(order);
+    const { fee, gas } =
+        fees[ERC20BridgeSource.Native] === undefined ? DEFAULT_FEE_ESTIMATE : fees[ERC20BridgeSource.Native]!(order);
     const outputPenalty = ethToOutputAmount({
         input,
         output,
@@ -76,6 +77,7 @@ export function nativeOrderToFill(
         source: ERC20BridgeSource.Native,
         type,
         fillData: { ...order },
+        gas,
     };
 }
 
@@ -90,7 +92,8 @@ export function dexSampleToFill(
     const { source, fillData } = sample;
     const input = sample.input;
     const output = sample.output;
-    const fee = fees[source] === undefined ? 0 : fees[source]!(sample.fillData) || 0;
+    const { fee, gas } =
+        fees[source] === undefined ? DEFAULT_FEE_ESTIMATE : fees[source]!(sample.fillData) || DEFAULT_FEE_ESTIMATE;
     const penalty = ethToOutputAmount({
         input,
         output,
@@ -108,5 +111,6 @@ export function dexSampleToFill(
         fillData,
         type: FillQuoteTransformerOrderType.Bridge,
         flags: SOURCE_FLAGS[source],
+        gas,
     };
 }

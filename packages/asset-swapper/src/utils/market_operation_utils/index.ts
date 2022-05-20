@@ -51,7 +51,6 @@ import {
     AggregationError,
     DexSample,
     ERC20BridgeSource,
-    Fill,
     GenerateOptimizedOrdersOpts,
     GetMarketOrdersOpts,
     MarketSideLiquidity,
@@ -535,6 +534,7 @@ export class MarketOperationUtils {
             opts.feeSchedule,
             opts.exchangeProxyOverhead,
         );
+
         if (bestTwoHopQuote && bestTwoHopRate.isGreaterThan(optimalPathAdjustedRate)) {
             const twoHopOrders = createOrdersFromTwoHopSample(bestTwoHopQuote, orderOpts);
             return {

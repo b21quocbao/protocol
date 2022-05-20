@@ -70,6 +70,7 @@ export function createOrdersFromTwoHopSample(
         adjustedOutput: opts.side === MarketOperation.Sell ? ZERO_AMOUNT : sample.output,
         fillData: firstHopSource.fillData,
         flags: BigInt(0),
+        gas: 1,
     };
     const secondHopFill: Fill = {
         sourcePathId: '',
@@ -80,6 +81,7 @@ export function createOrdersFromTwoHopSample(
         adjustedOutput: opts.side === MarketOperation.Sell ? sample.output : MAX_UINT256,
         fillData: secondHopSource.fillData,
         flags: BigInt(0),
+        gas: 1,
     };
     return [
         createBridgeOrder(firstHopFill, intermediateToken, takerToken, opts.side),
@@ -401,68 +403,6 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
     return bridgeData;
 }
 
-export function createBridgeOrder(
-    fill: Fill,
-    makerToken: string,
-    takerToken: string,
-    side: MarketOperation,
-): OptimizedMarketBridgeOrder {
-    const [makerAmount, takerAmount] = getFillTokenAmounts(fill, side);
-    return {
-        makerToken,
-        takerToken,
-        makerAmount,
-        takerAmount,
-        fillData: createFinalBridgeOrderFillDataFromCollapsedFill(fill),
-        source: fill.source,
-        sourcePathId: fill.sourcePathId,
-        type: FillQuoteTransformerOrderType.Bridge,
-        fill: _.omit(fill, 'flags') as Omit<Fill, 'flags'>,
-    };
-}
-
-function createFinalBridgeOrderFillDataFromCollapsedFill(fill: Fill): FillData {
-    switch (fill.source) {
-        case ERC20BridgeSource.UniswapV3: {
-            const fd = fill.fillData as UniswapV3FillData;
-            const { uniswapPath, gasUsed } = getBestUniswapV3PathAmountForInputAmount(fd, fill.input);
-            const finalFillData: FinalUniswapV3FillData = {
-                router: fd.router,
-                tokenAddressPath: fd.tokenAddressPath,
-                uniswapPath,
-                gasUsed,
-            };
-            return finalFillData;
-        }
-        default:
-            break;
-    }
-    return fill.fillData;
-}
-
-function getBestUniswapV3PathAmountForInputAmount(
-    fillData: UniswapV3FillData,
-    inputAmount: BigNumber,
-): UniswapV3PathAmount {
-    if (fillData.pathAmounts.length === 0) {
-        throw new Error(`No Uniswap V3 paths`);
-    }
-    // Find the best path that can satisfy `inputAmount`.
-    // Assumes `fillData.pathAmounts` is sorted ascending.
-    for (const pathAmount of fillData.pathAmounts) {
-        if (pathAmount.inputAmount.gte(inputAmount)) {
-            return pathAmount;
-        }
-    }
-    return fillData.pathAmounts[fillData.pathAmounts.length - 1];
-}
-
-export function getMakerTakerTokens(opts: CreateOrderFromPathOpts): [string, string] {
-    const makerToken = opts.side === MarketOperation.Sell ? opts.outputToken : opts.inputToken;
-    const takerToken = opts.side === MarketOperation.Sell ? opts.inputToken : opts.outputToken;
-    return [makerToken, takerToken];
-}
-
 export const poolEncoder = AbiEncoder.create([{ name: 'poolAddress', type: 'address' }]);
 const curveEncoder = AbiEncoder.create([
     { name: 'curveAddress', type: 'address' },
@@ -612,10 +552,76 @@ export function createNativeOptimizedOrder(
         takerToken: fillData.order.takerToken,
         makerAmount,
         takerAmount,
-        fill: _.omit(fill, 'flags') as Omit<Fill, 'flags'>,
         fillData,
+        fill: cleanFillForExport(fill),
     };
     return fill.type === FillQuoteTransformerOrderType.Rfq
         ? { ...base, type: FillQuoteTransformerOrderType.Rfq, fillData: fillData as NativeRfqOrderFillData }
         : { ...base, type: FillQuoteTransformerOrderType.Limit, fillData: fillData as NativeLimitOrderFillData };
+}
+
+export function createBridgeOrder(
+    fill: Fill,
+    makerToken: string,
+    takerToken: string,
+    side: MarketOperation,
+): OptimizedMarketBridgeOrder {
+    const [makerAmount, takerAmount] = getFillTokenAmounts(fill, side);
+    return {
+        type: FillQuoteTransformerOrderType.Bridge,
+        source: fill.source,
+        makerToken,
+        takerToken,
+        makerAmount,
+        takerAmount,
+        fillData: createFinalBridgeOrderFillDataFromCollapsedFill(fill),
+        fill: cleanFillForExport(fill),
+        sourcePathId: fill.sourcePathId,
+    };
+}
+
+function cleanFillForExport(fill: Fill): Fill {
+    return _.omit(fill, ['flags', 'fillData', 'sourcePathId', 'source', 'type']) as Fill;
+}
+
+function createFinalBridgeOrderFillDataFromCollapsedFill(fill: Fill): FillData {
+    switch (fill.source) {
+        case ERC20BridgeSource.UniswapV3: {
+            const fd = fill.fillData as UniswapV3FillData;
+            const { uniswapPath, gasUsed } = getBestUniswapV3PathAmountForInputAmount(fd, fill.input);
+            const finalFillData: FinalUniswapV3FillData = {
+                router: fd.router,
+                tokenAddressPath: fd.tokenAddressPath,
+                uniswapPath,
+                gasUsed,
+            };
+            return finalFillData;
+        }
+        default:
+            break;
+    }
+    return fill.fillData;
+}
+
+function getBestUniswapV3PathAmountForInputAmount(
+    fillData: UniswapV3FillData,
+    inputAmount: BigNumber,
+): UniswapV3PathAmount {
+    if (fillData.pathAmounts.length === 0) {
+        throw new Error(`No Uniswap V3 paths`);
+    }
+    // Find the best path that can satisfy `inputAmount`.
+    // Assumes `fillData.pathAmounts` is sorted ascending.
+    for (const pathAmount of fillData.pathAmounts) {
+        if (pathAmount.inputAmount.gte(inputAmount)) {
+            return pathAmount;
+        }
+    }
+    return fillData.pathAmounts[fillData.pathAmounts.length - 1];
+}
+
+export function getMakerTakerTokens(opts: CreateOrderFromPathOpts): [string, string] {
+    const makerToken = opts.side === MarketOperation.Sell ? opts.outputToken : opts.inputToken;
+    const takerToken = opts.side === MarketOperation.Sell ? opts.inputToken : opts.outputToken;
+    return [makerToken, takerToken];
 }

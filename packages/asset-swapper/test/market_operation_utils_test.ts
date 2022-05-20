@@ -630,7 +630,7 @@ describe('MarketOperationUtils tests', () => {
 
                 // to get a comparisonPrice, you need a feeschedule for a native order
                 const feeSchedule = {
-                    [ERC20BridgeSource.Native]: _.constant(new BigNumber(1)),
+                    [ERC20BridgeSource.Native]: _.constant({ gas: 1, fee: new BigNumber(1) }),
                 };
                 mockedQuoteRequestor
                     .setup(mqr => mqr.getMakerUriForSignature(TypeMoq.It.isValue(SIGNATURE)))
@@ -1042,7 +1042,7 @@ describe('MarketOperationUtils tests', () => {
                     { ...DEFAULT_OPTS, numSamples: 4 },
                 );
                 const improvedOrders = improvedOrdersResponse.optimizedOrders;
-                const orderSources = improvedOrders.map(o => o.fill.source);
+                const orderSources = improvedOrders.map(o => o.source);
                 const expectedSources = [
                     ERC20BridgeSource.SushiSwap,
                     ERC20BridgeSource.Uniswap,
@@ -1066,11 +1066,12 @@ describe('MarketOperationUtils tests', () => {
                     [ERC20BridgeSource.Kyber]: [0.1, 0.1, 0.1, 0.1],
                 };
                 const feeSchedule = {
-                    [ERC20BridgeSource.Native]: _.constant(
-                        FILL_AMOUNT.div(4)
+                    [ERC20BridgeSource.Native]: _.constant({
+                        gas: 1,
+                        fee: FILL_AMOUNT.div(4)
                             .times(nativeFeeRate)
                             .dividedToIntegerBy(ETH_TO_MAKER_RATE),
-                    ),
+                    }),
                 };
                 replaceSamplerOps({
                     getSellQuotes: createGetMultipleSellQuotesOperationFromRates(rates),
@@ -1083,7 +1084,7 @@ describe('MarketOperationUtils tests', () => {
                     { ...DEFAULT_OPTS, numSamples: 4, feeSchedule },
                 );
                 const improvedOrders = improvedOrdersResponse.optimizedOrders;
-                const orderSources = improvedOrders.map(o => o.fill.source);
+                const orderSources = improvedOrders.map(o => o.source);
                 const expectedSources = [
                     ERC20BridgeSource.Native,
                     ERC20BridgeSource.Uniswap,
@@ -1105,11 +1106,12 @@ describe('MarketOperationUtils tests', () => {
                     [ERC20BridgeSource.Uniswap]: [1, 0.7, 0.2, 0.2],
                 };
                 const feeSchedule = {
-                    [ERC20BridgeSource.Uniswap]: _.constant(
-                        FILL_AMOUNT.div(4)
+                    [ERC20BridgeSource.Uniswap]: _.constant({
+                        gas: 1,
+                        fee: FILL_AMOUNT.div(4)
                             .times(uniswapFeeRate)
                             .dividedToIntegerBy(ETH_TO_MAKER_RATE),
-                    ),
+                    }),
                 };
                 replaceSamplerOps({
                     getSellQuotes: createGetMultipleSellQuotesOperationFromRates(rates),
@@ -1122,7 +1124,7 @@ describe('MarketOperationUtils tests', () => {
                     { ...DEFAULT_OPTS, numSamples: 4, feeSchedule },
                 );
                 const improvedOrders = improvedOrdersResponse.optimizedOrders;
-                const orderSources = improvedOrders.map(o => o.fill.source);
+                const orderSources = improvedOrders.map(o => o.source);
                 const expectedSources = [
                     ERC20BridgeSource.Native,
                     ERC20BridgeSource.SushiSwap,
@@ -1149,7 +1151,7 @@ describe('MarketOperationUtils tests', () => {
                     { ...DEFAULT_OPTS, numSamples: 4 },
                 );
                 const improvedOrders = improvedOrdersResponse.optimizedOrders;
-                const orderSources = improvedOrders.map(o => o.fill.source);
+                const orderSources = improvedOrders.map(o => o.source);
                 const expectedSources = [
                     ERC20BridgeSource.SushiSwap,
                     ERC20BridgeSource.Uniswap,
@@ -1176,7 +1178,7 @@ describe('MarketOperationUtils tests', () => {
                     { ...DEFAULT_OPTS, numSamples: 4, allowFallback: true, maxFallbackSlippage: 0.25 },
                 );
                 const improvedOrders = improvedOrdersResponse.optimizedOrders;
-                const orderSources = improvedOrders.map(o => o.fill.source);
+                const orderSources = improvedOrders.map(o => o.source);
                 const firstSources = [ERC20BridgeSource.Native, ERC20BridgeSource.Native, ERC20BridgeSource.Uniswap];
                 const secondSources: ERC20BridgeSource[] = [];
                 expect(orderSources.slice(0, firstSources.length).sort()).to.deep.eq(firstSources.sort());
@@ -1274,7 +1276,7 @@ describe('MarketOperationUtils tests', () => {
                     },
                 );
                 const improvedOrders = improvedOrdersResponse.optimizedOrders;
-                const orderSources = improvedOrders.map(o => o.fill.source);
+                const orderSources = improvedOrders.map(o => o.source);
                 const expectedSources = [ERC20BridgeSource.LiquidityProvider];
                 expect(orderSources).to.deep.eq(expectedSources);
             });
@@ -1492,7 +1494,7 @@ describe('MarketOperationUtils tests', () => {
                     { ...DEFAULT_OPTS, numSamples: 4 },
                 );
                 const improvedOrders = improvedOrdersResponse.optimizedOrders;
-                const orderSources = improvedOrders.map(o => o.fill.source);
+                const orderSources = improvedOrders.map(o => o.source);
                 const expectedSources = [
                     ERC20BridgeSource.SushiSwap,
                     ERC20BridgeSource.Uniswap,
@@ -1517,11 +1519,12 @@ describe('MarketOperationUtils tests', () => {
                     [ERC20BridgeSource.Kyber]: [0.1, 0.1, 0.1, 0.1],
                 };
                 const feeSchedule = {
-                    [ERC20BridgeSource.Native]: _.constant(
-                        FILL_AMOUNT.div(4)
+                    [ERC20BridgeSource.Native]: _.constant({
+                        gas: 1,
+                        fee: FILL_AMOUNT.div(4)
                             .times(nativeFeeRate)
                             .dividedToIntegerBy(ETH_TO_TAKER_RATE),
-                    ),
+                    }),
                 };
                 replaceSamplerOps({
                     getBuyQuotes: createGetMultipleBuyQuotesOperationFromRates(rates),
@@ -1534,7 +1537,7 @@ describe('MarketOperationUtils tests', () => {
                     { ...DEFAULT_OPTS, numSamples: 4, feeSchedule },
                 );
                 const improvedOrders = improvedOrdersResponse.optimizedOrders;
-                const orderSources = improvedOrders.map(o => o.fill.source);
+                const orderSources = improvedOrders.map(o => o.source);
                 const expectedSources = [
                     ERC20BridgeSource.Uniswap,
                     ERC20BridgeSource.SushiSwap,
@@ -1556,11 +1559,12 @@ describe('MarketOperationUtils tests', () => {
                     [ERC20BridgeSource.SushiSwap]: [0.92, 0.1, 0.1, 0.1],
                 };
                 const feeSchedule = {
-                    [ERC20BridgeSource.Uniswap]: _.constant(
-                        FILL_AMOUNT.div(4)
+                    [ERC20BridgeSource.Uniswap]: _.constant({
+                        gas: 1,
+                        fee: FILL_AMOUNT.div(4)
                             .times(uniswapFeeRate)
                             .dividedToIntegerBy(ETH_TO_TAKER_RATE),
-                    ),
+                    }),
                 };
                 replaceSamplerOps({
                     getBuyQuotes: createGetMultipleBuyQuotesOperationFromRates(rates),
@@ -1573,7 +1577,7 @@ describe('MarketOperationUtils tests', () => {
                     { ...DEFAULT_OPTS, numSamples: 4, feeSchedule },
                 );
                 const improvedOrders = improvedOrdersResponse.optimizedOrders;
-                const orderSources = improvedOrders.map(o => o.fill.source);
+                const orderSources = improvedOrders.map(o => o.source);
                 const expectedSources = [
                     ERC20BridgeSource.Native,
                     ERC20BridgeSource.SushiSwap,
@@ -1599,7 +1603,7 @@ describe('MarketOperationUtils tests', () => {
                     { ...DEFAULT_OPTS, numSamples: 4, allowFallback: true, maxFallbackSlippage: 0.25 },
                 );
                 const improvedOrders = improvedOrdersResponse.optimizedOrders;
-                const orderSources = improvedOrders.map(o => o.fill.source);
+                const orderSources = improvedOrders.map(o => o.source);
                 const firstSources = [ERC20BridgeSource.Native, ERC20BridgeSource.Native, ERC20BridgeSource.Uniswap];
                 const secondSources: ERC20BridgeSource[] = [];
                 expect(orderSources.slice(0, firstSources.length).sort()).to.deep.eq(firstSources.sort());
@@ -1644,7 +1648,7 @@ describe('MarketOperationUtils tests', () => {
                     },
                 );
                 const improvedOrders = improvedOrdersResponse.optimizedOrders;
-                const orderSources = improvedOrders.map(o => o.fill.source);
+                const orderSources = improvedOrders.map(o => o.source);
                 const expectedSources = [ERC20BridgeSource.LiquidityProvider];
                 expect(orderSources).to.deep.eq(expectedSources);
             });

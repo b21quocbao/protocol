@@ -394,6 +394,8 @@ export interface Fill<TFillData extends FillData = FillData> {
     output: BigNumber;
     // The output fill amount, ajdusted by fees.
     adjustedOutput: BigNumber;
+    // The expected gas cost of this fill
+    gas: number;
 }
 
 export interface OptimizedMarketOrderBase<TFillData extends FillData = FillData> {
@@ -404,24 +406,21 @@ export interface OptimizedMarketOrderBase<TFillData extends FillData = FillData>
     takerToken: string;
     makerAmount: BigNumber; // The amount we wish to buy from this order, e.g inclusive of any previous partial fill
     takerAmount: BigNumber; // The amount we wish to fill this for, e.g inclusive of any previous partial fill
-    fill: Omit<Fill, 'flags'>;
+    fill: Omit<Fill, 'flags' | 'fillData' | 'sourcePathId' | 'source' | 'type'>; // Remove duplicates which have been brought into the OrderBase interface
 }
 
 export interface OptimizedMarketBridgeOrder<TFillData extends FillData = FillData>
     extends OptimizedMarketOrderBase<TFillData> {
     type: FillQuoteTransformerOrderType.Bridge;
-    fillData: TFillData;
     sourcePathId: string;
 }
 
 export interface OptimizedLimitOrder extends OptimizedMarketOrderBase<NativeLimitOrderFillData> {
     type: FillQuoteTransformerOrderType.Limit;
-    fillData: NativeLimitOrderFillData;
 }
 
 export interface OptimizedRfqOrder extends OptimizedMarketOrderBase<NativeRfqOrderFillData> {
     type: FillQuoteTransformerOrderType.Rfq;
-    fillData: NativeRfqOrderFillData;
 }
 
 /**
@@ -438,8 +437,12 @@ export interface GetMarketOrdersRfqOpts extends RfqRequestOpts {
     firmQuoteValidator?: RfqFirmQuoteValidator;
 }
 
-export type FeeEstimate = (fillData: FillData) => number | BigNumber;
+export type FeeEstimate = (fillData: FillData) => { gas: number; fee: BigNumber };
 export type FeeSchedule = Partial<{ [key in ERC20BridgeSource]: FeeEstimate }>;
+
+export type GasEstimate = (fillData: FillData) => number;
+export type GasSchedule = Partial<{ [key in ERC20BridgeSource]: GasEstimate }>;
+
 export type ExchangeProxyOverhead = (sourceFlags: bigint) => BigNumber;
 
 /**
@@ -503,7 +506,7 @@ export interface GetMarketOrdersOpts {
     /**
      * Estimated gas consumed by each liquidity source.
      */
-    gasSchedule: FeeSchedule;
+    gasSchedule: GasSchedule;
     exchangeProxyOverhead: ExchangeProxyOverhead;
     /**
      * Whether to pad the quote with a redundant fallback quote using different

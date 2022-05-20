@@ -4,7 +4,7 @@ import { BigNumber } from '@0x/utils';
 import { constants } from '../constants';
 import { MarketOperation } from '../types';
 
-import { FeeSchedule, NativeLimitOrderFillData, OptimizedMarketOrder } from './market_operation_utils/types';
+import { GasSchedule, NativeLimitOrderFillData, OptimizedMarketOrder } from './market_operation_utils/types';
 import { getNativeAdjustedTakerFeeAmount } from './utils';
 
 const { PROTOCOL_FEE_MULTIPLIER, ZERO_AMOUNT } = constants;
@@ -72,7 +72,7 @@ export interface QuoteFillInfo {
 }
 
 export interface QuoteFillInfoOpts {
-    gasSchedule: FeeSchedule;
+    gasSchedule: GasSchedule;
     protocolFeeMultiplier: BigNumber;
     slippage: number;
 }
@@ -140,7 +140,7 @@ export function fillQuoteOrders(
     fillOrders: QuoteFillOrderCall[],
     inputAmount: BigNumber,
     protocolFeePerFillOrder: BigNumber,
-    gasSchedule: FeeSchedule,
+    gasSchedule: GasSchedule,
 ): IntermediateQuoteFillResult {
     const result: IntermediateQuoteFillResult = {
         ...EMPTY_QUOTE_INTERMEDIATE_FILL_RESULT,
@@ -302,7 +302,7 @@ function fromIntermediateQuoteFillResult(ir: IntermediateQuoteFillResult, quoteI
     };
 }
 
-function getTotalGasUsedByFills(fills: OptimizedMarketOrder[], gasSchedule: FeeSchedule): number {
+function getTotalGasUsedByFills(fills: OptimizedMarketOrder[], gasSchedule: GasSchedule): number {
     let gasUsed = 0;
     for (const f of fills) {
         const fee = gasSchedule[f.source] === undefined ? 0 : gasSchedule[f.source]!(f.fillData);

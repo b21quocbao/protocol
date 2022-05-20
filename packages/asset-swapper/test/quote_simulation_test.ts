@@ -45,18 +45,16 @@ describe('quote_simulation tests', async () => {
             inputFeeRate: number;
             outputFeeRate: number;
             count: number;
-            fillsCount: number;
             side: MarketOperation;
             type?: FillQuoteTransformerOrderType;
         }> = {},
     ): QuoteFillOrderCall[] {
-        const { fillableInput, fillableOutput, inputFeeRate, outputFeeRate, count, fillsCount, side, type } = {
+        const { fillableInput, fillableOutput, inputFeeRate, outputFeeRate, count, side, type } = {
             fillableInput: getRandomOrderSize(),
             fillableOutput: getRandomOrderSize(),
             inputFeeRate: 0,
             outputFeeRate: 0,
             count: 3,
-            fillsCount: 3,
             side: MarketOperation.Sell,
             ...opts,
         };
@@ -83,7 +81,6 @@ describe('quote_simulation tests', async () => {
             return {
                 order: createQuoteFillOrderOrder(totalInputs[i], totalOutputs[i], {
                     side,
-                    fillsCount,
                     filledInput: filledInputs[i],
                     takerInputFee: inputFees[i].abs(),
                     takerOutputFee: outputFees[i].abs(),
@@ -102,19 +99,17 @@ describe('quote_simulation tests', async () => {
         output: BigNumber,
         opts: Partial<{
             filledInput: BigNumber;
-            fillsCount: number;
             side: MarketOperation;
             takerInputFee: BigNumber;
             takerOutputFee: BigNumber;
             type: FillQuoteTransformerOrderType;
         }> = {},
     ): OptimizedMarketOrderBase<NativeLimitOrderFillData> {
-        const { filledInput, fillsCount, side, takerInputFee, takerOutputFee, type } = _.merge(
+        const { filledInput, side, takerInputFee, takerOutputFee, type } = _.merge(
             {},
             {
                 side: MarketOperation.Sell,
                 filledInput: ZERO,
-                fillsCount: 3,
                 takerInputFee: ZERO,
                 takerOutputFee: ZERO,
                 type: FillQuoteTransformerOrderType.Limit,
@@ -160,21 +155,22 @@ describe('quote_simulation tests', async () => {
                 maxTakerTokenFillAmount: fillableTakerAmount,
             },
             type,
-            fill: createOrderFill(fillableInput, fillableOutput, fillsCount),
+            fill: createOrderFill(fillableInput, fillableOutput),
         };
         return order;
     }
     const nativeSourcePathId = hexUtils.random();
-    function createOrderFill(input: BigNumber, output: BigNumber, count: number): Fill {
+    function createOrderFill(input: BigNumber, output: BigNumber): Fill {
         return {
             type: FillQuoteTransformerOrderType.Bridge,
             sourcePathId: nativeSourcePathId,
             source: ERC20BridgeSource.Uniswap,
             fillData: {},
-            input: input,
-            output: output,
+            input,
+            output,
             flags: BigInt(0),
             adjustedOutput: output,
+            gas: 1,
         };
     }
 
@@ -213,14 +209,12 @@ describe('quote_simulation tests', async () => {
         describe('single order', () => {
             it('can exactly fill one order', () => {
                 const side = randomSide();
-                const fillsCount = _.random(1, 3);
                 const fillableInput = getRandomOrderSize();
                 const fillableOutput = getRandomOrderSize();
                 const fillOrders = createQuoteFillOrders({
                     fillableInput,
                     fillableOutput,
                     side,
-                    fillsCount,
                     count: 1,
                 });
                 const result = fillQuoteOrders(fillOrders, fillableInput, ONE, GAS_SCHEDULE);
@@ -229,19 +223,16 @@ describe('quote_simulation tests', async () => {
                 expect(totalFilledInput).to.bignumber.eq(fillableInput);
                 assertRoughlyEquals(totalFilledOutput, fillableOutput);
                 expect(result.protocolFee).to.bignumber.eq(1);
-                expect(result.gas).to.eq(fillsCount);
             });
 
             it('can partially fill one simple order', () => {
                 const side = randomSide();
-                const fillsCount = 1;
                 const fillableInput = getRandomOrderSize();
                 const fillableOutput = getRandomOrderSize();
                 const fillOrders = createQuoteFillOrders({
                     fillableInput,
                     fillableOutput,
                     side,
-                    fillsCount,
                     count: 1,
                 });
                 const inputFillAmount = fillableInput.times(2 / 3).integerValue();
@@ -255,19 +246,16 @@ describe('quote_simulation tests', async () => {
                     .integerValue();
                 assertRoughlyEquals(totalFilledOutput, expectedOutputFilledAmount);
                 expect(result.protocolFee).to.bignumber.eq(1);
-                expect(result.gas).to.eq(1);
             });
 
             it('can partially fill one batched order', () => {
                 const side = randomSide();
-                const fillsCount = 3;
                 const fillableInput = getRandomOrderSize();
                 const fillableOutput = getRandomOrderSize();
                 const fillOrders = createQuoteFillOrders({
                     fillableInput,
                     fillableOutput,
                     side,
-                    fillsCount,
                     count: 1,
                 });
                 const inputFillAmount = fillableInput.times(2 / 3).integerValue();
@@ -277,20 +265,16 @@ describe('quote_simulation tests', async () => {
                 expect(totalFilledInput).to.bignumber.eq(inputFillAmount);
                 expect(totalFilledOutput).to.bignumber.lt(fillableOutput);
                 expect(result.protocolFee).to.bignumber.eq(1);
-                expect(result.gas).to.gte(1);
-                expect(result.gas).to.lte(fillsCount);
             });
 
             it('does not over fill one order', () => {
                 const side = randomSide();
-                const fillsCount = _.random(1, 3);
                 const fillableInput = getRandomOrderSize();
                 const fillableOutput = getRandomOrderSize();
                 const fillOrders = createQuoteFillOrders({
                     fillableInput,
                     fillableOutput,
                     side,
-                    fillsCount,
                     count: 1,
                 });
                 const inputFillAmount = fillableInput.times(3 / 2).integerValue();
@@ -300,12 +284,10 @@ describe('quote_simulation tests', async () => {
                 expect(totalFilledInput).to.bignumber.eq(fillableInput);
                 assertRoughlyEquals(totalFilledOutput, fillableOutput);
                 expect(result.protocolFee).to.bignumber.eq(1);
-                expect(result.gas).to.eq(fillsCount);
             });
 
             it('can exactly fill one order with input fees', () => {
                 const side = randomSide();
-                const fillsCount = _.random(1, 3);
                 const fillableInput = getRandomOrderSize();
                 const fillableOutput = getRandomOrderSize();
                 const inputFeeRate = getRandomFeeRate();
@@ -314,7 +296,6 @@ describe('quote_simulation tests', async () => {
                     fillableOutput,
                     inputFeeRate,
                     side,
-                    fillsCount,
                     count: 1,
                 });
                 const signedInputFeeRate = side === MarketOperation.Sell ? inputFeeRate : -inputFeeRate;
@@ -326,12 +307,10 @@ describe('quote_simulation tests', async () => {
                 assertRoughlyEquals(totalFilledOutput, fillableOutput);
                 assertEqualRates(result.inputFee.div(result.input), signedInputFeeRate);
                 expect(result.protocolFee).to.bignumber.eq(1);
-                expect(result.gas).to.eq(fillsCount);
             });
 
             it('can partially fill one order with input fees', () => {
                 const side = randomSide();
-                const fillsCount = _.random(1, 3);
                 const fillableInput = getRandomOrderSize();
                 const fillableOutput = getRandomOrderSize();
                 const inputFeeRate = getRandomFeeRate();
@@ -340,7 +319,6 @@ describe('quote_simulation tests', async () => {
                     fillableOutput,
                     inputFeeRate,
                     side,
-                    fillsCount,
                     count: 1,
                 });
                 const signedInputFeeRate = side === MarketOperation.Sell ? inputFeeRate : -inputFeeRate;
@@ -353,12 +331,10 @@ describe('quote_simulation tests', async () => {
                 expect(totalFilledOutput).to.bignumber.lt(fillableOutput);
                 assertEqualRates(result.inputFee.div(result.input), signedInputFeeRate);
                 expect(result.protocolFee).to.bignumber.eq(1);
-                expect(result.gas).to.lte(fillsCount);
             });
 
             it('does not over fill one order with input fees', () => {
                 const side = randomSide();
-                const fillsCount = _.random(1, 3);
                 const fillableInput = getRandomOrderSize();
                 const fillableOutput = getRandomOrderSize();
                 const inputFeeRate = getRandomFeeRate();
@@ -367,7 +343,6 @@ describe('quote_simulation tests', async () => {
                     fillableOutput,
                     inputFeeRate,
                     side,
-                    fillsCount,
                     count: 1,
                 });
                 const signedInputFeeRate = side === MarketOperation.Sell ? inputFeeRate : -inputFeeRate;
@@ -380,12 +355,10 @@ describe('quote_simulation tests', async () => {
                 assertRoughlyEquals(totalFilledOutput, fillableOutput);
                 assertEqualRates(result.inputFee.div(result.input), signedInputFeeRate);
                 expect(result.protocolFee).to.bignumber.eq(1);
-                expect(result.gas).to.eq(fillsCount);
             });
 
             it('can exactly fill one order with output fees', () => {
                 const side = randomSide();
-                const fillsCount = _.random(1, 3);
                 const fillableInput = getRandomOrderSize();
                 const fillableOutput = getRandomOrderSize();
                 const outputFeeRate = getRandomFeeRate();
@@ -394,7 +367,6 @@ describe('quote_simulation tests', async () => {
                     fillableOutput,
                     outputFeeRate,
                     side,
-                    fillsCount,
                     count: 1,
                 });
                 const signedOutputFeeRate = side === MarketOperation.Sell ? -outputFeeRate : outputFeeRate;
@@ -406,12 +378,10 @@ describe('quote_simulation tests', async () => {
                 assertRoughlyEquals(totalFilledOutput, totalFillableOutput);
                 assertEqualRates(result.outputFee.div(result.output), signedOutputFeeRate);
                 expect(result.protocolFee).to.bignumber.eq(1);
-                expect(result.gas).to.eq(fillsCount);
             });
 
             it('can partial fill one order with output fees', () => {
                 const side = randomSide();
-                const fillsCount = _.random(1, 3);
                 const fillableInput = getRandomOrderSize();
                 const fillableOutput = getRandomOrderSize();
                 const outputFeeRate = getRandomFeeRate();
@@ -420,7 +390,6 @@ describe('quote_simulation tests', async () => {
                     fillableOutput,
                     outputFeeRate,
                     side,
-                    fillsCount,
                     count: 1,
                 });
                 const signedOutputFeeRate = side === MarketOperation.Sell ? -outputFeeRate : outputFeeRate;
@@ -433,12 +402,10 @@ describe('quote_simulation tests', async () => {
                 expect(totalFilledOutput).to.bignumber.lt(totalFillableOutput);
                 assertEqualRates(result.outputFee.div(result.output), signedOutputFeeRate);
                 expect(result.protocolFee).to.bignumber.eq(1);
-                expect(result.gas).to.lte(fillsCount);
             });
 
             it('does not over fill one order with output fees', () => {
                 const side = randomSide();
-                const fillsCount = _.random(1, 3);
                 const fillableInput = getRandomOrderSize();
                 const fillableOutput = getRandomOrderSize();
                 const outputFeeRate = getRandomFeeRate();
@@ -447,7 +414,6 @@ describe('quote_simulation tests', async () => {
                     fillableOutput,
                     outputFeeRate,
                     side,
-                    fillsCount,
                     count: 1,
                 });
                 const signedOutputFeeRate = side === MarketOperation.Sell ? -outputFeeRate : outputFeeRate;
@@ -460,19 +426,16 @@ describe('quote_simulation tests', async () => {
                 assertRoughlyEquals(totalFilledOutput, totalFillableOutput);
                 assertEqualRates(result.outputFee.div(result.output), signedOutputFeeRate);
                 expect(result.protocolFee).to.bignumber.eq(1);
-                expect(result.gas).to.eq(fillsCount);
             });
 
             it('does not charge a protocol fee for rfq orders', () => {
                 const side = randomSide();
-                const fillsCount = _.random(1, 3);
                 const fillableInput = getRandomOrderSize();
                 const fillableOutput = getRandomOrderSize();
                 const fillOrders = createQuoteFillOrders({
                     fillableInput,
                     fillableOutput,
                     side,
-                    fillsCount,
                     count: 1,
                     type: FillQuoteTransformerOrderType.Rfq,
                 });
@@ -482,7 +445,6 @@ describe('quote_simulation tests', async () => {
                 expect(totalFilledInput).to.bignumber.eq(fillableInput);
                 assertRoughlyEquals(totalFilledOutput, fillableOutput);
                 expect(result.protocolFee).to.bignumber.eq(0);
-                expect(result.gas).to.eq(fillsCount);
             });
         });
 
