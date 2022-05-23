@@ -31,6 +31,7 @@ import {
     KYBER_BRIDGED_LIQUIDITY_PREFIX,
     MAX_DODOV2_POOLS_QUERIED,
     MAX_KYBER_RESERVES_QUERIED,
+    MESHSWAP_ROUTER_BY_CHAIN_ID,
     MOBIUSMONEY_CELO_INFOS,
     MORPHEUSSWAP_ROUTER_BY_CHAIN_ID,
     MSTABLE_POOLS_BY_CHAIN_ID,
@@ -553,7 +554,8 @@ export function uniswapV2LikeRouterAddress(
         | ERC20BridgeSource.UbeSwap
         | ERC20BridgeSource.MorpheusSwap
         | ERC20BridgeSource.SpookySwap
-        | ERC20BridgeSource.SpiritSwap,
+        | ERC20BridgeSource.SpiritSwap
+        | ERC20BridgeSource.MeshSwap,
 ): string {
     switch (source) {
         case ERC20BridgeSource.UniswapV2:
@@ -602,6 +604,8 @@ export function uniswapV2LikeRouterAddress(
             return SPOOKYSWAP_ROUTER_BY_CHAIN_ID[chainId];
         case ERC20BridgeSource.SpiritSwap:
             return SPIRITSWAP_ROUTER_BY_CHAIN_ID[chainId];
+        case ERC20BridgeSource.MeshSwap:
+            return MESHSWAP_ROUTER_BY_CHAIN_ID[chainId];
         default:
             throw new Error(`Unknown UniswapV2 like source ${source}`);
     }
