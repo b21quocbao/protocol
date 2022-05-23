@@ -38,7 +38,6 @@ export enum ERC20BridgeSource {
     Native = 'Native',
     Uniswap = 'Uniswap',
     UniswapV2 = 'Uniswap_V2',
-    Kyber = 'Kyber',
     Curve = 'Curve',
     LiquidityProvider = 'LiquidityProvider',
     MultiBridge = 'MultiBridge',
@@ -70,6 +69,7 @@ export enum ERC20BridgeSource {
     // BSC only
     PancakeSwap = 'PancakeSwap',
     PancakeSwapV2 = 'PancakeSwap_V2',
+    BiSwap = 'BiSwap',
     BakerySwap = 'BakerySwap',
     Nerve = 'Nerve',
     Belt = 'Belt',
@@ -92,6 +92,9 @@ export enum ERC20BridgeSource {
     // Avalanche
     Pangolin = 'Pangolin',
     TraderJoe = 'TraderJoe',
+    Platypus = 'Platypus',
+    // tslint:disable: enum-naming
+    GMX = 'GMX',
     // Celo only
     UbeSwap = 'UbeSwap',
     MobiusMoney = 'MobiusMoney',
@@ -100,6 +103,7 @@ export enum ERC20BridgeSource {
     SpookySwap = 'SpookySwap',
     Beethovenx = 'Beethovenx',
     MorpheusSwap = 'MorpheusSwap',
+    Yoshi = 'Yoshi',
     Geist = 'Geist',
 }
 export type SourcesWithPoolsCache =
@@ -258,12 +262,6 @@ export interface BancorFillData extends FillData {
     networkAddress: string;
 }
 
-export interface KyberFillData extends FillData {
-    hint: string;
-    reserveId: string;
-    networkProxy: string;
-}
-
 export interface MooniswapFillData extends FillData {
     poolAddress: string;
 }
@@ -351,6 +349,24 @@ export interface GeistFillData extends FillData {
     takerToken: string;
 }
 
+export interface PlatypusInfo {
+    poolAddress: string;
+    tokens: string[];
+    gasSchedule: number;
+}
+
+export interface GMXFillData extends FillData {
+    router: string;
+    reader: string;
+    vault: string;
+    tokenAddressPath: string[];
+}
+
+export interface PlatypusFillData extends FillData {
+    router: string;
+    pool: string[];
+    tokenAddressPath: string[];
+}
 /**
  * Represents a node on a fill path.
  */
@@ -670,10 +686,4 @@ export interface GenerateOptimizedOrdersOpts {
 
 export interface ComparisonPrice {
     wholeOrder: BigNumber | undefined;
-}
-
-export interface KyberSamplerOpts {
-    networkProxy: string;
-    hintHandler: string;
-    weth: string;
 }

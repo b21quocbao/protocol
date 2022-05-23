@@ -1,11 +1,12 @@
 import { ChainId } from '@0x/contract-addresses';
-import { BigNumber, NULL_BYTES } from '@0x/utils';
+import { BigNumber } from '@0x/utils';
 
 import {
     ACRYPTOS_BSC_INFOS,
     APESWAP_ROUTER_BY_CHAIN_ID,
     BAKERYSWAP_ROUTER_BY_CHAIN_ID,
     BELT_BSC_INFOS,
+    BISWAP_ROUTER_BY_CHAIN_ID,
     CAFESWAP_ROUTER_BY_CHAIN_ID,
     CHEESESWAP_ROUTER_BY_CHAIN_ID,
     COMETHSWAP_ROUTER_BY_CHAIN_ID,
@@ -27,8 +28,6 @@ import {
     IRONSWAP_POLYGON_INFOS,
     JETSWAP_ROUTER_BY_CHAIN_ID,
     JULSWAP_ROUTER_BY_CHAIN_ID,
-    KYBER_BANNED_RESERVES,
-    KYBER_BRIDGED_LIQUIDITY_PREFIX,
     MAX_DODOV2_POOLS_QUERIED,
     MAX_KYBER_RESERVES_QUERIED,
     MESHSWAP_ROUTER_BY_CHAIN_ID,
@@ -40,6 +39,7 @@ import {
     PANCAKESWAP_ROUTER_BY_CHAIN_ID,
     PANCAKESWAPV2_ROUTER_BY_CHAIN_ID,
     PANGOLIN_ROUTER_BY_CHAIN_ID,
+    PLATYPUS_AVALANCHE_INFOS,
     POLYDEX_ROUTER_BY_CHAIN_ID,
     QUICKSWAP_ROUTER_BY_CHAIN_ID,
     SADDLE_MAINNET_INFOS,
@@ -61,33 +61,13 @@ import {
     UNISWAPV2_ROUTER_BY_CHAIN_ID,
     WAULTSWAP_ROUTER_BY_CHAIN_ID,
     XSIGMA_MAINNET_INFOS,
+    YOSHI_ROUTER_BY_CHAIN_ID,
 } from './constants';
-import { CurveInfo, ERC20BridgeSource } from './types';
-
-/**
- * Filter Kyber reserves which should not be used (0xbb bridged reserves)
- * @param reserveId Kyber reserveId
- */
-export function isAllowedKyberReserveId(reserveId: string): boolean {
-    return (
-        reserveId !== NULL_BYTES &&
-        !reserveId.startsWith(KYBER_BRIDGED_LIQUIDITY_PREFIX) &&
-        !KYBER_BANNED_RESERVES.includes(reserveId)
-    );
-}
+import { CurveInfo, ERC20BridgeSource, PlatypusInfo } from './types';
 
 // tslint:disable-next-line: completed-docs ban-types
 export function isValidAddress(address: string | String): address is string {
     return (typeof address === 'string' || address instanceof String) && address.toString() !== NULL_ADDRESS;
-}
-
-/**
- * Returns the offsets to be used to discover Kyber reserves
- */
-export function getKyberOffsets(): BigNumber[] {
-    return Array(MAX_KYBER_RESERVES_QUERIED)
-        .fill(0)
-        .map((_v, i) => new BigNumber(i));
 }
 
 // tslint:disable completed-docs
@@ -436,6 +416,15 @@ export function getMobiusMoneyInfoForPair(chainId: ChainId, takerToken: string, 
     );
 }
 
+export function getPlatypusInfoForPair(chainId: ChainId, takerToken: string, makerToken: string): PlatypusInfo[] {
+    if (chainId !== ChainId.Avalanche) {
+        return [];
+    }
+    return Object.values(PLATYPUS_AVALANCHE_INFOS).filter(c =>
+        [makerToken, takerToken].every(t => c.tokens.includes(t)),
+    );
+}
+
 export function getShellLikeInfosForPair(
     chainId: ChainId,
     takerToken: string,
@@ -556,6 +545,8 @@ export function uniswapV2LikeRouterAddress(
         | ERC20BridgeSource.SpookySwap
         | ERC20BridgeSource.SpiritSwap
         | ERC20BridgeSource.MeshSwap,
+        | ERC20BridgeSource.BiSwap
+        | ERC20BridgeSource.Yoshi,
 ): string {
     switch (source) {
         case ERC20BridgeSource.UniswapV2:
@@ -606,6 +597,10 @@ export function uniswapV2LikeRouterAddress(
             return SPIRITSWAP_ROUTER_BY_CHAIN_ID[chainId];
         case ERC20BridgeSource.MeshSwap:
             return MESHSWAP_ROUTER_BY_CHAIN_ID[chainId];
+        case ERC20BridgeSource.BiSwap:
+            return BISWAP_ROUTER_BY_CHAIN_ID[chainId];
+        case ERC20BridgeSource.Yoshi:
+            return YOSHI_ROUTER_BY_CHAIN_ID[chainId];
         default:
             throw new Error(`Unknown UniswapV2 like source ${source}`);
     }

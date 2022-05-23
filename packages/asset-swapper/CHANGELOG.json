@@ -1,5 +1,46 @@
 [
     {
+        "version": "16.61.0",
+        "changes": [
+            {
+                "note": "Offboard/clean up Oasis, CoFix, and legacy Kyber",
+                "pr": 482
+            }
+        ]
+    },
+    {
+        "version": "16.60.1",
+        "changes": [
+            {
+                "note": "Alias Balancer sor to the old version",
+                "pr": 481
+            }
+        ],
+        "timestamp": 1652931596
+    },
+    {
+        "version": "16.60.0",
+        "changes": [
+            {
+                "note": "Add BiSwap on BSC",
+                "pr": 467
+            },
+            {
+                "note": "Add GMX and Platypus on Avalanche and Enable KyberDMM on bsc",
+                "pr": 478
+            },
+            {
+                "note": "Add Yoshi Exchange support in Fantom",
+                "pr": 473
+            },
+            {
+                "note": "Fix KyberDMM gas underestimation",
+                "pr": 479
+            }
+        ],
+        "timestamp": 1652919697
+    },
+    {
         "version": "16.59.0",
         "changes": [
             {

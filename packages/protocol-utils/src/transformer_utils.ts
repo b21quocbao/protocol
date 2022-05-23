@@ -114,16 +114,13 @@ export enum BridgeProtocol {
     UniswapV2,
     Uniswap,
     Balancer,
-    Kyber,
     Mooniswap,
     MStable,
-    Oasis,
     Shell,
     Dodo,
     DodoV2,
     CryptoCom,
     Bancor,
-    CoFiX,
     Nerve,
     MakerPsm,
     BalancerV2,
@@ -135,6 +132,8 @@ export enum BridgeProtocol {
     AaveV2,
     Compound,
     BalancerV2Batch,
+    GMX,
+    Platypus,
 }
 // tslint:enable: enum-naming
 
