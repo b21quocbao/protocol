@@ -20,8 +20,8 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-import "/contracts-utils/contracts/src/v06/errors/LibRichErrorsV06.sol";
-import "/contracts-utils/contracts/src/v06/errors/LibOwnableRichErrorsV06.sol";
+import "contracts-utils/contracts/src/v06/errors/LibRichErrorsV06.sol";
+import "contracts-utils/contracts/src/v06/errors/LibOwnableRichErrorsV06.sol";
 import "../errors/LibWalletRichErrors.sol";
 import "./IFlashWallet.sol";
 

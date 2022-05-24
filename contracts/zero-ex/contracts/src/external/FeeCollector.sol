@@ -20,8 +20,8 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-import "/contracts-erc20/contracts/src/v06/IEtherTokenV06.sol";
-import "/contracts-utils/contracts/src/v06/AuthorizableV06.sol";
+import "contracts-erc20/contracts/src/v06/IEtherTokenV06.sol";
+import "contracts-utils/contracts/src/v06/AuthorizableV06.sol";
 import "../vendor/v3/IStaking.sol";
 
 /// @dev The collector contract for protocol fees

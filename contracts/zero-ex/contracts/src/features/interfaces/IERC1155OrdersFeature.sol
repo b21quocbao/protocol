@@ -20,7 +20,7 @@
 pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
-import "/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
+import "contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 import "../libs/LibNFTOrder.sol";
 import "../libs/LibSignature.sol";
 import "../../vendor/IERC1155Token.sol";

@@ -20,10 +20,10 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-import "/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
-import "/contracts-utils/contracts/src/v06/errors/LibRichErrorsV06.sol";
-import "/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
-import "/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
+import "contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
+import "contracts-utils/contracts/src/v06/errors/LibRichErrorsV06.sol";
+import "contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
+import "contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 import "../errors/LibLiquidityProviderRichErrors.sol";
 import "../external/ILiquidityProviderSandbox.sol";
 import "../external/LiquidityProviderSandbox.sol";

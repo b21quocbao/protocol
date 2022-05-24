@@ -20,7 +20,7 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-import "/contracts-erc20/contracts/src/v06/IEtherTokenV06.sol";
+import "contracts-erc20/contracts/src/v06/IEtherTokenV06.sol";
 import "../vendor/v3/IStaking.sol";
 import "./FeeCollector.sol";
 import "./LibFeeCollector.sol";

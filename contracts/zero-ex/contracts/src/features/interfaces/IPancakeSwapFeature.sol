@@ -20,7 +20,7 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-import "/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
+import "contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 
 
 /// @dev VIP PancakeSwap (and forks) fill functions.

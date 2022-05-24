@@ -20,11 +20,11 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-import "/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
-import "/contracts-erc20/contracts/src/v06/LibERC20TokenV06.sol";
-import "/contracts-utils/contracts/src/v06/LibBytesV06.sol";
-import "/contracts-utils/contracts/src/v06/errors/LibRichErrorsV06.sol";
-import "/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
+import "contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
+import "contracts-erc20/contracts/src/v06/LibERC20TokenV06.sol";
+import "contracts-utils/contracts/src/v06/LibBytesV06.sol";
+import "contracts-utils/contracts/src/v06/errors/LibRichErrorsV06.sol";
+import "contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
 import "../errors/LibTransformERC20RichErrors.sol";
 import "../fixins/FixinCommon.sol";
 import "../fixins/FixinTokenSpender.sol";

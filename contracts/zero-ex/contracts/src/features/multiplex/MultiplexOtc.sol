@@ -20,7 +20,7 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-import "/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
+import "contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
 import "../../fixins/FixinEIP712.sol";
 import "../interfaces/IMultiplexFeature.sol";
 import "../interfaces/IOtcOrdersFeature.sol";

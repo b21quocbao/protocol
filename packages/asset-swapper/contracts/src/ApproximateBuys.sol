@@ -20,7 +20,7 @@
 pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
-import "/contracts-utils/contracts/src/v06/LibMathV06.sol";
+import "contracts-utils/contracts/src/v06/LibMathV06.sol";
 
 
 contract ApproximateBuys {

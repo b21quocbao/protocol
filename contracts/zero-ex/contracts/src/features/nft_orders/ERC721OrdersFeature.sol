@@ -20,8 +20,8 @@
 pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
-import "/contracts-erc20/contracts/src/v06/IEtherTokenV06.sol";
-import "/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
+import "contracts-erc20/contracts/src/v06/IEtherTokenV06.sol";
+import "contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
 import "../../fixins/FixinERC721Spender.sol";
 import "../../migrations/LibMigrate.sol";
 import "../../storage/LibERC721OrdersStorage.sol";

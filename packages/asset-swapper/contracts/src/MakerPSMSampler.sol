@@ -21,7 +21,7 @@ pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
 import "./SamplerUtils.sol";
-import "/contracts-utils/contracts/src/v06/LibMathV06.sol";
+import "contracts-utils/contracts/src/v06/LibMathV06.sol";
 
 interface IPSM {
     // @dev Get the fee for selling USDC to DAI in PSM

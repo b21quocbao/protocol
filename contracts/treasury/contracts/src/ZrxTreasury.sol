@@ -20,10 +20,10 @@
 pragma solidity ^0.6.12;
 pragma experimental ABIEncoderV2;
 
-import "/contracts-utils/contracts/src/v06/LibBytesV06.sol";
-import "/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
-import "/contracts-utils/contracts/src/v06/errors/LibRichErrorsV06.sol";
-import "/contracts-zero-ex/contracts/src/features/libs/LibSignature.sol";
+import "contracts-utils/contracts/src/v06/LibBytesV06.sol";
+import "contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
+import "contracts-utils/contracts/src/v06/errors/LibRichErrorsV06.sol";
+import "contracts-zero-ex/contracts/src/features/libs/LibSignature.sol";
 import "./IZrxTreasury.sol";
 
 

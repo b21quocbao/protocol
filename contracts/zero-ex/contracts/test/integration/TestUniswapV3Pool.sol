@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
-import "/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
+import "contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 import "../../src/vendor/IUniswapV3Pool.sol";
 
 interface IUniswapV3PoolDeployer {

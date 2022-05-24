@@ -20,7 +20,7 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-import "/contracts-utils/contracts/src/v06/AuthorizableV06.sol";
+import "contracts-utils/contracts/src/v06/AuthorizableV06.sol";
 
 
 /// @dev A contract with a `die()` function.

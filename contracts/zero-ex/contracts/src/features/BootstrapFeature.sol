@@ -20,7 +20,7 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-import "/contracts-utils/contracts/src/v06/errors/LibRichErrorsV06.sol";
+import "contracts-utils/contracts/src/v06/errors/LibRichErrorsV06.sol";
 import "../migrations/LibBootstrap.sol";
 import "../storage/LibProxyStorage.sol";
 import "./interfaces/IBootstrapFeature.sol";

@@ -20,7 +20,7 @@
 pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
-import "/contracts-utils/contracts/src/v06/LibBytesV06.sol";
+import "contracts-utils/contracts/src/v06/LibBytesV06.sol";
 
 
 contract TwoHopSampler {

@@ -20,9 +20,9 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-import "/contracts-utils/contracts/src/v06/LibBytesV06.sol";
-import "/contracts-utils/contracts/src/v06/LibMathV06.sol";
-import "/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
+import "contracts-utils/contracts/src/v06/LibBytesV06.sol";
+import "contracts-utils/contracts/src/v06/LibMathV06.sol";
+import "contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
 import "./tokens/TestMintableERC20Token.sol";
 import "../src/features/libs/LibNativeOrder.sol";
 import "../src/features/libs/LibSignature.sol";

@@ -20,7 +20,7 @@
 pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
-import "/contracts-erc20/contracts/src/v06/LibERC20TokenV06.sol";
+import "contracts-erc20/contracts/src/v06/LibERC20TokenV06.sol";
 
 
 contract SamplerUtils {
