@@ -20,7 +20,7 @@
 pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
-import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
+import "/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
 import "../vendor/IERC1155Token.sol";
 
 

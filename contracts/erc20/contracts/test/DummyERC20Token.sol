@@ -18,8 +18,8 @@
 
 pragma solidity ^0.5.5;
 
-import "@0x/contracts-utils/contracts/src/LibSafeMath.sol";
-import "@0x/contracts-utils/contracts/src/Ownable.sol";
+import "/contracts-utils/contracts/src/LibSafeMath.sol";
+import "/contracts-utils/contracts/src/Ownable.sol";
 import "../src/MintableERC20Token.sol";
 
 

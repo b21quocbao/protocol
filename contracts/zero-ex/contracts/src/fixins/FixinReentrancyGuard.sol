@@ -20,8 +20,8 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-import "@0x/contracts-utils/contracts/src/v06/LibBytesV06.sol";
-import "@0x/contracts-utils/contracts/src/v06/errors/LibRichErrorsV06.sol";
+import "/contracts-utils/contracts/src/v06/LibBytesV06.sol";
+import "/contracts-utils/contracts/src/v06/errors/LibRichErrorsV06.sol";
 import "../errors/LibCommonRichErrors.sol";
 import "../storage/LibReentrancyGuardStorage.sol";
 

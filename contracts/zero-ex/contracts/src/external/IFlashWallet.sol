@@ -20,7 +20,7 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-import "@0x/contracts-utils/contracts/src/v06/interfaces/IOwnableV06.sol";
+import "/contracts-utils/contracts/src/v06/interfaces/IOwnableV06.sol";
 
 
 /// @dev A contract that can execute arbitrary calls from its owner.

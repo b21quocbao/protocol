@@ -20,10 +20,10 @@
 pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
-import "@0x/contracts-erc20/contracts/src/v06/LibERC20TokenV06.sol";
-import "@0x/contracts-utils/contracts/src/v06/LibMathV06.sol";
-import "@0x/contracts-utils/contracts/src/v06/LibBytesV06.sol";
-import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
+import "/contracts-erc20/contracts/src/v06/LibERC20TokenV06.sol";
+import "/contracts-utils/contracts/src/v06/LibMathV06.sol";
+import "/contracts-utils/contracts/src/v06/LibBytesV06.sol";
+import "/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
 
 
 interface IExchange {
